@@ -9,8 +9,14 @@ export const aboutCopy = {
     "UI DESIGNER",
   ],
   name: "Aditya Lucky Zulkarnaen",
+  /**
+   * Phrases wrapped in `*` are marked as key phrases and get the acid swipe.
+   * The marker lives in the copy rather than in the markup so the sentence
+   * stays one readable string to edit, and so the word-splitter that drives
+   * the scroll sweeps still sees a plain paragraph.
+   */
   bio: [
-    "‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ My name is Aditya Lucky Zulkarnaen, I am a undergraduate student at Universitas Gadjah Mada, majoring in Software Engineering. I have a strong passion for Software Development and Data Engineering.", "I explore how to create seamless design experiences into scalable architectures, building systems that are not only functional but also intuitive and visually appealing."
+    "‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ My name is Aditya Lucky Zulkarnaen, I am a undergraduate student at *Universitas Gadjah Mada*, majoring in Software Engineering. I have a strong passion for *Software Development* and *Data Engineering*.", "I explore how to create *seamless design* experiences into *scalable architectures*, building systems that are not only functional but also *intuitive and visually appealing*."
   ],
   resume: "See My Resume",
   resumeHref: "/resume.pdf",

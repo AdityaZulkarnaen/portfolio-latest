@@ -11,6 +11,55 @@ import RoleMarquee from "./role-marquee";
 /** Slabs the panel reaches up with. */
 const SLATS = 3;
 
+/** A token carries no visible glyph if it is only whitespace or format marks. */
+const VISIBLE = /[^\s\p{Cf}]/u;
+
+type BioToken = { word: string; hi: boolean; glue: boolean };
+
+/**
+ * Splits a bio paragraph into words, carrying the key-phrase flag through.
+ *
+ * `*` toggles: the odd segments of the split are the marked phrases. Splitting
+ * on the marker first and on whitespace second is what lets a multi-word phrase
+ * stay per-word — the scroll sweeps still animate one word at a time, they just
+ * also know which words wear the swipe.
+ *
+ * `glue` is what keeps the marker invisible in the output. A marker can sit
+ * between two characters that were never separated by a space, and splitting on
+ * it would otherwise invent one: `*Gadjah Mada*,` comes back as `Mada` and `,`
+ * as separate tokens, rendering "Mada ,".
+ *
+ * Whether a space belongs there has to be judged from both sides of the seam.
+ * The whitespace in `at *Universitas` lives at the end of the segment before
+ * the marker, not at the start of the marked one — so testing only the leading
+ * edge welds those into "atUniversitas" instead. A boundary is real if either
+ * side carries whitespace, which is why the trailing edge is carried forward.
+ */
+function splitBio(paragraph: string): BioToken[] {
+  const tokens: BioToken[] = [];
+  let spaceBefore = true;
+
+  paragraph.split("*").forEach((segment, i) => {
+    const words = segment.split(/\s+/).filter(Boolean);
+
+    if (!words.length) {
+      // A segment of pure whitespace still separates; an empty one does not.
+      if (segment.length) spaceBefore = true;
+      return;
+    }
+
+    if (tokens.length && !spaceBefore && !/^\s/.test(segment)) {
+      tokens[tokens.length - 1].glue = true;
+    }
+    for (const word of words) {
+      tokens.push({ word, hi: i % 2 === 1, glue: false });
+    }
+    spaceBefore = /\s$/.test(segment);
+  });
+
+  return tokens;
+}
+
 /**
  * Chapter .02 — the slab that closes over the hero.
  *
@@ -187,6 +236,8 @@ export default function About() {
     <section
       ref={rootRef}
       id="about"
+      data-chapter=".02"
+      data-chapter-name="About"
       className="relative z-20 [--about-head:9rem] bg-[#71737D] text-void"
     >
       {/* Sits directly on the outside of the panel's top edge (`bottom-full`)
@@ -229,8 +280,15 @@ export default function About() {
         {/* The tall mobile bottom padding is the landing strip for Chapter
             .03's curtain: below `md` the aside flows after the bio instead of
             pinning, so without a tail the void slats reach up into the photo
-            deck. Keep it at least as tall as that band. */}
-        <div className="mx-auto w-full max-w-[110rem] px-5 pb-[38svh] pt-4 md:px-8 md:pb-20 md:pt-20">
+            deck. Keep it at least as tall as that band.
+
+            The right padding is the chapter rail's gutter. This is the one
+            chapter whose content runs the full height of the right edge — the
+            hero and Chapter .03 keep their furniture along the top and bottom,
+            which the rail is centred to clear — so it is the only one that has
+            to step aside for it. Left and right are set separately so the
+            gutter is never overridden by a shorthand at a wider breakpoint. */}
+        <div className="mx-auto w-full max-w-[110rem] pb-[38svh] pl-5 pr-5 pt-4 sm:pr-[var(--rail-gutter)] md:pb-20 md:pl-8 md:pt-20">
           <div className="grid gap-14 md:grid-cols-12 md:gap-10">
             {/* Left column: the only thing that actually travels. */}
             <div className="md:col-span-7 lg:col-span-6">
@@ -271,17 +329,43 @@ export default function About() {
                         animating nothing, which pushes the live edge of the
                         exit dissolve up behind the sticky marquee where no one
                         can see it. */}
-                    {paragraph.split(/\s+/).map((word, i) =>
-                      /[^\s\p{Cf}]/u.test(word) ? (
-                        <span key={`${word}-${i}`} data-word>
-                          <span data-word-ink className="opacity-0">
-                            {word}
-                          </span>{" "}
+                    {splitBio(paragraph).map((token, i, all) => {
+                      if (!VISIBLE.test(token.word)) {
+                        return <span key={`mark-${i}`}>{token.word} </span>;
+                      }
+                      // When the next word continues the phrase, the space
+                      // goes inside the swipe. Left outside, every word gets
+                      // its own bar and the phrase reads as separate stripes
+                      // instead of one stroke.
+                      const joins = !token.glue && token.hi && all[i + 1]?.hi === true;
+                      const space = token.glue ? "" : " ";
+                      // Where this word sits in its phrase, so the chip is
+                      // only inset at the two outer edges.
+                      const opens = token.hi && !all[i - 1]?.hi;
+                      const closes = token.hi && !all[i + 1]?.hi;
+                      const place = !token.hi
+                        ? undefined
+                        : opens && closes
+                          ? "only"
+                          : opens
+                            ? "start"
+                            : closes
+                              ? "end"
+                              : "mid";
+                      return (
+                        <span key={`${token.word}-${i}`} data-word>
+                          <span
+                            data-word-ink
+                            data-hi={place}
+                            className="opacity-0"
+                          >
+                            {token.word}
+                            {joins ? space : ""}
+                          </span>
+                          {joins ? "" : space}
                         </span>
-                      ) : (
-                        <span key={`mark-${i}`}>{word} </span>
-                      ),
-                    )}
+                      );
+                    })}
                   </p>
                 ))}
               </div>

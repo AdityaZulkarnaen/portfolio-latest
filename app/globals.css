@@ -18,6 +18,28 @@
 
 :root {
   color-scheme: dark;
+
+  /*
+   * Width the chapter rail owns down the right edge, measured against what
+   * `site-scroll.tsx` actually occupies plus a little air. A scrollbar owns a
+   * gutter; this is that gutter, made explicit because the rail is an overlay
+   * and cannot claim one by taking up layout space the way a native bar does.
+   *
+   * Zero below `sm`, which is exactly where the rail stops rendering.
+   */
+  --rail-gutter: 0px;
+}
+
+@media (min-width: 40rem) {
+  :root {
+    --rail-gutter: 5.5rem;
+  }
+}
+
+@media (min-width: 48rem) {
+  :root {
+    --rail-gutter: 7.5rem;
+  }
 }
 
 body {
@@ -36,6 +58,24 @@ html.lenis body {
   scroll-behavior: auto !important;
 }
 
+/* `site-scroll.tsx` is the scrollbar now. It is a real control — press or drag
+   the rail to move the page — so nothing is lost by taking the native one
+   away, and leaving both would put two indicators down the same edge.
+
+   Only from `sm` up, which is exactly where the rail renders. Below that the
+   rail is hidden (there is no room for it beside full-bleed content), and
+   hiding the native bar too would leave a very long page with no position
+   feedback at all. */
+@media (min-width: 40rem) {
+  html {
+    scrollbar-width: none;
+  }
+
+  html::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 ::selection {
   background: var(--color-acid);
   color: var(--color-void);
@@ -46,6 +86,36 @@ html.lenis body {
   [data-loader] {
     display: none;
   }
+}
+
+/* Key phrases in Chapter .02's bio: near-black type knocked out of a solid
+   acid block. The bio already sets `text-void`, so the words need no recolour
+   — the block alone flips the polarity.
+
+   No vertical padding. An inline background already covers the font's whole
+   content area — ascent to descent, around 1.2em — so descenders are inside
+   the chip unaided, while the bio's `leading-[1]` makes the line box shorter
+   than that. Chips on consecutive lines therefore already meet; padding them
+   only drove the overlap deeper and left a seam through the block. `clone` so
+   a word that breaks across lines gets a closed chip on each half instead of
+   one stretched box. */
+[data-hi] {
+  background-color: var(--color-acid);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+/* Only the ends of a phrase are inset. Padding every word would stack two
+   insets at each interior seam, so a multi-word phrase would read as a row of
+   separate chips rather than one block. */
+[data-hi="start"],
+[data-hi="only"] {
+  padding-left: 0.14em;
+}
+
+[data-hi="end"],
+[data-hi="only"] {
+  padding-right: 0.14em;
 }
 
 /* Dwell bar under the photo deck. Keyed off the card index in the markup, so

@@ -11,6 +11,22 @@ import { gsap, ScrollTrigger } from "./gsap";
  * R3F drives its own rAF for `useFrame`, which is fine: nothing here touches
  * React state, it only reports scroll velocity through `onVelocity`.
  */
+/**
+ * The instance currently driving the page, or null when smooth scroll is off.
+ *
+ * A module singleton because the hook runs exactly once, deep inside the hero,
+ * and the scroll rail lives in the root layout: threading a ref up through the
+ * tree would mean giving the layout state it has no other use for. Anything
+ * that moves the page programmatically has to go through this — writing
+ * `scrollTop` directly leaves Lenis animating toward its own stale target and
+ * the page fights the pointer.
+ */
+export function getLenis(): Lenis | null {
+  return current;
+}
+
+let current: Lenis | null = null;
+
 export function useSmoothScroll(
   enabled: boolean,
   onVelocity?: (velocity: number) => void,
@@ -28,6 +44,7 @@ export function useSmoothScroll(
 
     const lenis = new Lenis({ lerp: 0.1, smoothWheel: true });
     lenisRef.current = lenis;
+    current = lenis;
 
     const onScroll = () => {
       velocityCallback.current?.(lenis.velocity);
@@ -45,6 +62,7 @@ export function useSmoothScroll(
       gsap.ticker.lagSmoothing(500, 33);
       lenis.destroy();
       lenisRef.current = null;
+      current = null;
     };
   }, [enabled]);
 

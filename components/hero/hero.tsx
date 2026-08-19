@@ -302,7 +302,12 @@ export default function Hero() {
   const handleSceneReady = useCallback(() => setSceneReady(true), []);
 
   return (
-    <div ref={wrapperRef} className="relative h-[200svh] w-full">
+    <div
+      ref={wrapperRef}
+      data-chapter=".01"
+      data-chapter-name="Intro"
+      className="relative h-[200svh] w-full"
+    >
       <section
         ref={sectionRef}
         id="hero"

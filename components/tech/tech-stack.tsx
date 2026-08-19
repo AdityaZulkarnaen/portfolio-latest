@@ -229,7 +229,12 @@ export default function TechStack() {
   );
 
   return (
-    <div ref={wrapperRef} className="relative z-30 h-[460svh] w-full">
+    <div
+      ref={wrapperRef}
+      data-chapter=".03"
+      data-chapter-name="Stack"
+      className="relative z-30 h-[460svh] w-full"
+    >
       {/* Sits directly on the outside of the chapter's top edge and moves with
           it — this section's own reach into the space above.
 

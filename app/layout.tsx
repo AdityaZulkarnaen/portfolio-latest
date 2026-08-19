@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import SiteNav from "@/components/site-nav";
+import SiteScroll from "@/components/site-scroll";
 import SiteTrail from "@/components/site-trail";
 import { archivo, blurWeb, geistMono, geistSans } from "@/lib/fonts";
 import "./globals.css";
@@ -26,6 +27,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             than over it. */}
         <SiteTrail />
         <SiteNav />
+        <SiteScroll />
         {children}
       </body>
     </html>
