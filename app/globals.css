@@ -6,10 +6,14 @@
   --color-muted: #8a8a85;
   --color-line: #1e1e20;
   --color-acid: #e1ff00;
+  /* Chapter .02 flips the polarity: a concrete slab laid over the void. */
+  --color-slab: #97978f;
+  --color-slab-deep: #7f7f78;
 
   --font-display: var(--font-archivo);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-blur: var(--font-blurweb);
 }
 
 :root {
@@ -41,5 +45,16 @@ html.lenis body {
 @media (scripting: none) {
   [data-loader] {
     display: none;
+  }
+}
+
+/* Dwell bar under the photo deck. Keyed off the card index in the markup, so
+   restarting it is a remount rather than a JS-driven tween. */
+@keyframes deck-dwell {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
   }
 }

@@ -1,3 +1,4 @@
+import localFont from "next/font/local";
 import { Archivo, Geist, Geist_Mono } from "next/font/google";
 
 /**
@@ -22,4 +23,22 @@ export const geistSans = Geist({
 export const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+/**
+ * Editorial display face for Chapter .02. Only the marquee uses it, but it is
+ * loaded in the root layout as a CSS variable so the panel stays a Server
+ * Component and the file is fetched with the document rather than after it.
+ *
+ * `display: "block"` on purpose: the marquee is the section's headline, and a
+ * swap from a fallback metric mid-scroll is far more visible than a short
+ * blank. The band is below the fold, so nothing is blocked at first paint.
+ */
+export const blurWeb = localFont({
+  src: "../public/font/BlurWeb-Medium W03 Regular.ttf",
+  variable: "--font-blurweb",
+  display: "block",
+  weight: "500",
+  style: "normal",
+  fallback: ["Archivo", "system-ui", "sans-serif"],
 });

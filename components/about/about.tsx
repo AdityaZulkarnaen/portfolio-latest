@@ -1,0 +1,281 @@
+"use client";
+
+import { useEffect, useRef } from "react";
+import { gsap, useGSAP } from "@/lib/gsap";
+import { useReducedMotion } from "@/lib/use-media-query";
+import { META_TYPE_BASE } from "@/lib/site-config";
+import { aboutCopy } from "./about-copy";
+import PhotoDeck from "./photo-deck";
+import RoleMarquee from "./role-marquee";
+
+/** Slabs the panel reaches up with. */
+const SLATS = 3;
+
+/**
+ * Chapter .02 — the slab that closes over the hero.
+ *
+ * The transition is structural rather than animated: the hero is a sticky
+ * frame inside a 200svh wrapper, so this panel — positioned, opaque and one
+ * layer up — simply scrolls over the top of it and seals it shut. Nothing to
+ * scrub, nothing to keep in sync, and it behaves identically on a trackpad
+ * fling, a keyboard PageDown and with JS disabled.
+ */
+export default function About() {
+  const rootRef = useRef<HTMLElement>(null);
+  const headRef = useRef<HTMLDivElement>(null);
+  const reducedMotion = useReducedMotion();
+
+  // The seam + marquee band is the only thing pinned above the aside, so its
+  // real height decides where the aside starts and how tall it may be. Measure
+  // it instead of guessing: the marquee is clamp-sized and wraps differently
+  // on every viewport.
+  useEffect(() => {
+    const head = headRef.current;
+    const root = rootRef.current;
+    if (!head || !root) return;
+
+    const sync = () =>
+      root.style.setProperty("--about-head", `${head.offsetHeight}px`);
+    sync();
+
+    const observer = new ResizeObserver(sync);
+    observer.observe(head);
+    return () => observer.disconnect();
+  }, []);
+
+  useGSAP(
+    () => {
+      const rises = gsap.utils.toArray<HTMLElement>("[data-rise]");
+      const bios = gsap.utils.toArray<HTMLElement>("[data-bio]");
+
+      if (reducedMotion) {
+        gsap.set(rises, { yPercent: 0, opacity: 1 });
+        gsap.set("[data-word]", { opacity: 1 });
+        gsap.set("[data-slat]", { scaleY: 0 });
+        return;
+      }
+
+      gsap.fromTo(
+        rises,
+        { yPercent: 105, opacity: 0 },
+        {
+          yPercent: 0,
+          opacity: 1,
+          duration: 1,
+          stagger: 0.08,
+          ease: "power3.out",
+          scrollTrigger: { trigger: rootRef.current, start: "top 68%" },
+        },
+      );
+
+      // The takeover. The slabs are pinned to the outside of the panel's top
+      // edge, so they travel with it: as the panel climbs into the hero's
+      // frame it reaches up with stacked bands of its own ground colour,
+      // filling from the bottom of the stack upward. The hero is never
+      // "covered by a curtain" — the section simply takes the space, and the
+      // slabs are what that looks like at the leading edge.
+      const veil = document.querySelector<HTMLElement>("[data-hero-veil]");
+      const takeover = gsap.timeline({
+        scrollTrigger: {
+          trigger: rootRef.current,
+          // From the panel's top touching the foot of the screen to it sitting
+          // near the head of it: the stack finishes while it is still on
+          // screen, then scrolls away above the panel.
+          start: "top bottom",
+          end: "top 25%",
+          scrub: true,
+          invalidateOnRefresh: true,
+        },
+      });
+
+      takeover.fromTo(
+        "[data-slat]",
+        { scaleY: 0 },
+        {
+          // Past 1 so neighbouring slabs overlap by a hair — at 1 exactly,
+          // sub-pixel rounding leaves the hero showing through as seams.
+          scaleY: 1.02,
+          ease: "none",
+          // Only a little over the stagger step: with three slabs the overlap
+          // has to be tight, or they read as one block moving rather than a
+          // stack building.
+          duration: 1.6,
+          stagger: { each: 1, from: "end" },
+        },
+        0,
+      );
+
+      if (veil) {
+        // Whatever hero is still visible between the slabs sinks back as the
+        // gaps close, so the two chapters never sit at the same depth.
+        takeover.fromTo(veil, { opacity: 0 }, { opacity: 0.35, ease: "none" }, 0);
+      }
+
+      // The bio is read, not performed: nothing slides in from off-screen.
+      // Each word simply lifts out of the ground colour as the scroll passes
+      // it, so the live edge is a soft transparent band travelling down the
+      // block — and because it is scrubbed, scrolling back up puts the words
+      // away again exactly as they came.
+      bios.forEach((bio) => {
+        const words = bio.querySelectorAll("[data-word]");
+        if (!words.length) return;
+
+        gsap.fromTo(
+          words,
+          { opacity: 0 },
+          {
+            opacity: 1,
+            ease: "none",
+            // Duration well past the stagger step, so ~6 words are mid-fade at
+            // any moment: the edge is a gradient of words, not a hard cursor.
+            duration: 6,
+            stagger: { each: 1, from: "start" },
+            scrollTrigger: {
+              trigger: bio,
+              start: "top 88%",
+              end: "bottom 90%",
+              scrub: 0.4,
+            },
+          },
+        );
+      });
+    },
+    { scope: rootRef, dependencies: [reducedMotion] },
+  );
+
+  return (
+    <section
+      ref={rootRef}
+      id="about"
+      className="relative z-20 [--about-head:9rem] bg-[#71737D] text-void"
+    >
+      {/* Sits directly on the outside of the panel's top edge (`bottom-full`)
+          and moves with it — the section's own reach into the space above. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-full flex h-[55svh] flex-col"
+      >
+        {Array.from({ length: SLATS }, (_, i) => (
+          <span
+            key={i}
+            data-slat
+            className="w-full flex-1 origin-bottom scale-y-0 bg-[#71737D] will-change-transform"
+          />
+        ))}
+      </div>
+
+      {/* No `overflow-hidden` here — it would break the sticky children. */}
+      <div className="relative">
+        {/* Seam + marquee, pinned to the very top of the viewport. */}
+        <div ref={headRef} className="sticky top-0 z-30 bg-[#71737D] pb-2">
+          <div
+            className={`flex items-center justify-between px-5 py-3 md:px-8 ${META_TYPE_BASE} text-void/55`}
+          >
+            <span>{aboutCopy.seamLeft}</span>
+            <span className="flex items-center gap-2">
+              <span className="size-1.5 rounded-full bg-void/60" />
+              {aboutCopy.seamRight}
+            </span>
+          </div>
+
+          <RoleMarquee />
+        </div>
+
+        {/* The marquee is decorative; this is what a screen reader gets. */}
+        <h2 className="sr-only">
+          {aboutCopy.chapter} — {aboutCopy.roles.join(", ")}
+        </h2>
+
+        <div className="mx-auto w-full max-w-[110rem] px-5 pb-14 pt-4 md:px-8 md:py-20">
+          <div className="grid gap-14 md:grid-cols-12 md:gap-10">
+            {/* Left column: the only thing that actually travels. */}
+            <div className="md:col-span-7 lg:col-span-6">
+              {/* <div className="overflow-hidden">
+                <h3
+                  data-rise
+                  className="whitespace-nowrap text-start font-display text-[min(6.4vw,2.4rem)] font-black leading-[1.05] tracking-[-0.03em] md:text-[min(3vw,3.4rem)]"
+                >
+                  {aboutCopy.name}
+                </h3>
+              </div> */}
+
+              <div className="mt-0 space-y-5 md:mt-2">
+                <div className="shrink-0 overflow-hidden block md:hidden">
+                <p
+                  data-rise
+                  className={`${META_TYPE_BASE} text-void md:text-right`}
+                >
+                  {aboutCopy.eyebrow}
+                  <br />
+                  <span className="text-void/55">{aboutCopy.chapter}</span>
+                </p>
+              </div>
+                {aboutCopy.bio.map((paragraph) => (
+                  <p
+                    key={paragraph.slice(0, 24)}
+                    data-bio
+                    className="max-w-[150ch] text-start font-semibold text-[15px] leading-[1] text-void md:text-[52px]"
+                  >
+                    {/* Split in the markup, not at runtime: the full sentence
+                        still ships in the HTML, and the spans stay inline so
+                        wrapping and word spacing are untouched. */}
+                    {paragraph.split(/\s+/).map((word, i) => (
+                      <span key={`${word}-${i}`} data-word className="opacity-0">
+                        {word}{" "}
+                      </span>
+                    ))}
+                  </p>
+                ))}
+              </div>
+            </div>
+
+            {/*
+              Right column: pinned directly under the marquee and boxed to
+              exactly the leftover viewport height, so the aside itself never
+              scrolls and the band above it can never push the pair past one
+              screen. Everything inside sizes off that height.
+            */}
+            {/*
+              Below `md` the column simply flows: the deck is width-driven and
+              capped, because a pinned full-height aside in a stacked layout is
+              just a screen of photo between two screens of text.
+              From `md` up it pins under the marquee and is boxed to exactly the
+              leftover viewport height, so the aside never scrolls and the band
+              above it can never push the pair past one screen.
+            */}
+            <aside className="z-10 flex min-h-0 flex-col items-stretch gap-4 overflow-hidden pt-2 pr-3 pb-3 md:sticky md:top-[var(--about-head)] md:col-span-5 md:col-start-8 md:h-[calc(100svh-var(--about-head))] md:self-start">
+              <div className="shrink-0 overflow-hidden hidden md:block">
+                <p
+                  data-rise
+                  className={`${META_TYPE_BASE} text-void md:text-right`}
+                >
+                  {aboutCopy.eyebrow}
+                  <br />
+                  <span className="text-void/55">{aboutCopy.chapter}</span>
+                </p>
+              </div>
+
+              <div className="w-full md:ml-auto md:min-h-0 md:flex-1">
+                <PhotoDeck />
+              </div>
+
+              <a
+                href={aboutCopy.resumeHref}
+                className={`group relative inline-flex shrink-0 items-center gap-2 self-start overflow-hidden bg-acid px-4 py-2 md:self-end ${META_TYPE_BASE} text-void`}
+              >
+                {/* Fill sweep on hover — the acid stays, the ground inverts. */}
+                <span
+                  aria-hidden
+                  className="absolute inset-0 origin-left scale-x-0 bg-void transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-x-100"
+                />
+                <span className="relative transition-colors duration-300 group-hover:text-acid">
+                  {aboutCopy.resume} &gt;
+                </span>
+              </a>
+            </aside>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}

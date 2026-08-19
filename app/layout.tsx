@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import SiteNav from "@/components/site-nav";
-import { archivo, geistMono, geistSans } from "@/lib/fonts";
+import { archivo, blurWeb, geistMono, geistSans } from "@/lib/fonts";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -18,7 +18,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${archivo.variable} ${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${archivo.variable} ${blurWeb.variable} ${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-void text-ink">
         <SiteNav />

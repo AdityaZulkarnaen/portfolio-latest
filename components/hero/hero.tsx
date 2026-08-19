@@ -210,26 +210,26 @@ export default function Hero() {
 
   // Scroll-out. One ScrollTrigger drives both the shader dispersion and the DOM
   // fade, so they can never drift apart.
+  // Scroll-out. One ScrollTrigger drives both the shader dispersion and the DOM
+  // fade, so they can never drift apart.
   useGSAP(
     () => {
       if (reducedMotion || !wrapperRef.current) return;
       const motion = motionRef.current;
 
-      gsap
-        .timeline({
-          scrollTrigger: {
-            trigger: wrapperRef.current,
-            start: "top top",
-            end: "bottom bottom",
-            scrub: true,
-            invalidateOnRefresh: true,
-            onUpdate: (self) => {
-              motion.dispersion = self.progress;
-              motion.opacity = 1 - self.progress * 0.25;
-            },
+      gsap.timeline({
+        scrollTrigger: {
+          trigger: wrapperRef.current,
+          start: "top top",
+          end: "bottom bottom",
+          scrub: true,
+          invalidateOnRefresh: true,
+          onUpdate: (self) => {
+            motion.dispersion = self.progress;
+            motion.opacity = 1 - self.progress * 0.25;
           },
-        })
-        .to(contentRef.current, { opacity: 0, yPercent: -6, ease: "none" }, 0);
+        },
+      });
 
       ScrollTrigger.refresh();
     },
@@ -303,7 +303,7 @@ export default function Hero() {
               <div className="overflow-hidden">
                 <p
                   data-reveal
-                  className="max-w-[52ch] font-sans text-sm normal-case leading-relaxed tracking-normal text-ink"
+                  className="max-w-[52ch] font-sans text-lg normal-case leading-relaxed tracking-normal text-ink"
                 >
                   {heroCopy.tagline.join(" ")}
                 </p>
@@ -338,6 +338,18 @@ export default function Hero() {
             </div>
           </footer>
         </div>
+        {/* Driven by `slat-curtain.tsx`, which owns the crossover: whatever is
+            still visible between the closing slabs sinks back behind them. A
+            veil rather than a `filter` so the compositor only blends one flat
+            layer over the live canvas — and last in the section, at the same
+            z as the content it dims, so it covers the hero without ever
+            climbing over the curtain itself (equal z, and the curtain is
+            later in the tree). */}
+        <div
+          data-hero-veil
+          aria-hidden
+          className="pointer-events-none absolute inset-0 z-10 bg-void opacity-0"
+        />
       </section>
 
       <HeroLoader

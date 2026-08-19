@@ -16,11 +16,15 @@ export default function SiteNav() {
           readable once the wordmark dissolves into dust across the whole frame. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-void via-void/70 to-transparent"
+        className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-transparent"
       />
 
+      {/* `mix-blend-difference` instead of a fixed colour: the page now scrolls
+          a light slab (Chapter .02) under a nav that used to only ever sit on
+          the void, and inverting against the backdrop keeps it legible on both
+          without a scroll listener swapping classes. */}
       <div
-        className={`relative flex items-start justify-between p-5 md:p-8 ${META_TYPE}`}
+        className={`relative flex items-start justify-between p-5 mix-blend-difference md:p-8 ${META_TYPE}`}
       >
         <Link href="/" className="transition-colors hover:text-acid">
           {siteConfig.brand}
