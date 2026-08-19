@@ -17,6 +17,17 @@ import HeroHud from "./hero-hud";
 import HeroLoader from "./hero-loader";
 import { createHeroMotion, resolveParticleCount } from "./hero-motion";
 
+/**
+ * The pool the scramble draws from. Deliberately not the alphabet: uppercase
+ * plus the punctuation the rest of the site is built out of, so the noise looks
+ * like this page mid-decode rather than like a slot machine.
+ *
+ * No `<`, `>` or `&`. The plugin writes the noise in as innerHTML, so those get
+ * parsed as markup mid-tween — a stray `<` swallows the characters after it
+ * and leaves entity fragments like `lt;` sitting in the copy.
+ */
+const SCRAMBLE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/[]{}#*+=-_.:";
+
 export default function Hero() {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
@@ -203,6 +214,58 @@ export default function Hero() {
           targets,
           { yPercent: 0, opacity: 1, duration: 1, stagger: 0.07 },
           0.55,
+        )
+        // Each line lands as noise and resolves into itself.
+        //
+        // The timing is built around the two things already on screen. It
+        // starts at 0.4 — before the slide at 0.55 — so a line is already
+        // scrambled by the time it clears its `overflow-hidden` mask, rather
+        // than appearing correct and then falling apart. `revealDelay` then
+        // holds it at full noise until 0.9, which is exactly when the loader
+        // finishes wiping up: nothing decodes behind the veil where it cannot
+        // be seen. What is left resolves alongside the particle assembly, so
+        // the wordmark and the copy come into focus as one gesture.
+        //
+        // `{original}` is the plugin reading the text already in the DOM, which
+        // keeps the real copy server-rendered and the markup free of a
+        // duplicate of every string.
+        .to(
+          gsap.utils.toArray<HTMLElement>("[data-scramble]"),
+          {
+            duration: 1.5,
+            ease: "none",
+            // 0.40 and 0.54 — the tagline decodes between them, at 0.47.
+            stagger: 0.14,
+            scrambleText: {
+              text: "{original}",
+              chars: SCRAMBLE_CHARS,
+              // Below 1 the glyph churn is slow enough to read as characters
+              // rather than as a grey flicker.
+              speed: 0.45,
+              revealDelay: 0.5,
+            },
+          },
+          0.4,
+        )
+        // The tagline gets its own pass because it is the one line set in
+        // proportional sans rather than mono. Uppercase noise sets far wider
+        // than the real lowercase copy there — measured, it pushed the
+        // paragraph from three lines to five and shunted the whole footer 59px
+        // mid-intro, which lands as a jolt right as the hero settles.
+        // Lowercase noise keeps the measure honest and the layout still.
+        .to(
+          gsap.utils.toArray<HTMLElement>("[data-scramble-soft]"),
+          {
+            duration: 1.5,
+            ease: "none",
+            scrambleText: {
+              text: "{original}",
+              chars: "lowerCase",
+              speed: 0.45,
+              revealDelay: 0.5,
+            },
+          },
+          0.47,
         );
     },
     { scope: wrapperRef, dependencies: [revealed, reducedMotion, writeSignal] },
@@ -296,13 +359,14 @@ export default function Hero() {
           >
             <div className="space-y-3">
               <div className="overflow-hidden">
-                <p data-reveal className="text-acid">
+                <p data-reveal data-scramble className="text-acid">
                   {heroCopy.eyebrow}
                 </p>
               </div>
               <div className="overflow-hidden">
                 <p
                   data-reveal
+                  data-scramble-soft
                   className="max-w-[52ch] font-sans text-lg normal-case leading-relaxed tracking-normal text-ink"
                 >
                   {heroCopy.tagline.join(" ")}
@@ -332,7 +396,10 @@ export default function Hero() {
               <div className="overflow-hidden">
                 <p data-reveal className="flex items-center gap-2">
                   <span className="size-1.5 rounded-full bg-acid" />
-                  {heroCopy.status}
+                  {/* Only the text half is handed to the plugin — it rewrites
+                      the innerHTML of whatever it is given, which would take
+                      the dot with it. */}
+                  <span data-scramble>{heroCopy.status}</span>
                 </p>
               </div>
             </div>
