@@ -214,7 +214,7 @@ export default function About() {
                   <p
                     key={paragraph.slice(0, 24)}
                     data-bio
-                    className="max-w-[150ch] text-start font-semibold text-[15px] leading-[1] text-void md:text-[52px]"
+                    className="max-w-[150ch] text-start font-semibold text-[32px] leading-[1] text-void md:text-[52px]"
                   >
                     {/* Split in the markup, not at runtime: the full sentence
                         still ships in the HTML, and the spans stay inline so
