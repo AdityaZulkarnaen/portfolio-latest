@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { gsap, useGSAP } from "@/lib/gsap";
+import { gsap, killScrollTriggersIn, useGSAP } from "@/lib/gsap";
 import { useReducedMotion } from "@/lib/use-media-query";
 import { META_TYPE_BASE } from "@/lib/site-config";
 import { aboutCopy } from "./about-copy";
@@ -49,8 +49,9 @@ export default function About() {
       const bios = gsap.utils.toArray<HTMLElement>("[data-bio]");
 
       if (reducedMotion) {
+        killScrollTriggersIn(rootRef.current);
         gsap.set(rises, { yPercent: 0, opacity: 1 });
-        gsap.set("[data-word]", { opacity: 1 });
+        gsap.set("[data-word], [data-word-ink]", { opacity: 1 });
         gsap.set("[data-slat]", { scaleY: 0 });
         return;
       }
@@ -116,12 +117,18 @@ export default function About() {
       // it, so the live edge is a soft transparent band travelling down the
       // block — and because it is scrubbed, scrolling back up puts the words
       // away again exactly as they came.
+      //
+      // Two sweeps, on two nested spans. They have to be separate elements:
+      // one opacity cannot be driven by two scrubbed timelines at once, and
+      // nesting lets the browser multiply them instead — a word can be half
+      // arrived and half gone without either sweep knowing about the other.
       bios.forEach((bio) => {
         const words = bio.querySelectorAll("[data-word]");
-        if (!words.length) return;
+        const ink = bio.querySelectorAll("[data-word-ink]");
+        if (!ink.length) return;
 
         gsap.fromTo(
-          words,
+          ink,
           { opacity: 0 },
           {
             opacity: 1,
@@ -135,6 +142,39 @@ export default function About() {
               start: "top 88%",
               end: "bottom 90%",
               scrub: 0.4,
+            },
+          },
+        );
+
+        // The way out. The range is the block travelling its own height past
+        // one line, so each word fades roughly as it personally crosses that
+        // line — the block dissolves from the first line down rather than
+        // dimming as one slab.
+        //
+        // The line is the foot of the panel's own sticky head, not the top of
+        // the viewport. Anchored to the viewport the dissolve is real but
+        // invisible: the seam and marquee cover the top ~22% of a phone screen,
+        // so every word had already slid under the band before it began to go.
+        // Measured rather than guessed, because the marquee is clamp-sized and
+        // wraps differently on every viewport — same reason `--about-head`
+        // exists.
+        const exitLine = () =>
+          (headRef.current?.offsetHeight ?? 0) + window.innerHeight * 0.06;
+
+        gsap.fromTo(
+          words,
+          { opacity: 1 },
+          {
+            opacity: 0,
+            ease: "none",
+            duration: 6,
+            stagger: { each: 1, from: "start" },
+            scrollTrigger: {
+              trigger: bio,
+              start: () => `top ${exitLine()}px`,
+              end: () => `bottom ${exitLine()}px`,
+              scrub: 0.4,
+              invalidateOnRefresh: true,
             },
           },
         );
@@ -186,7 +226,11 @@ export default function About() {
           {aboutCopy.chapter} — {aboutCopy.roles.join(", ")}
         </h2>
 
-        <div className="mx-auto w-full max-w-[110rem] px-5 pb-14 pt-4 md:px-8 md:py-20">
+        {/* The tall mobile bottom padding is the landing strip for Chapter
+            .03's curtain: below `md` the aside flows after the bio instead of
+            pinning, so without a tail the void slats reach up into the photo
+            deck. Keep it at least as tall as that band. */}
+        <div className="mx-auto w-full max-w-[110rem] px-5 pb-[38svh] pt-4 md:px-8 md:pb-20 md:pt-20">
           <div className="grid gap-14 md:grid-cols-12 md:gap-10">
             {/* Left column: the only thing that actually travels. */}
             <div className="md:col-span-7 lg:col-span-6">
@@ -218,12 +262,26 @@ export default function About() {
                   >
                     {/* Split in the markup, not at runtime: the full sentence
                         still ships in the HTML, and the spans stay inline so
-                        wrapping and word spacing are untouched. */}
-                    {paragraph.split(/\s+/).map((word, i) => (
-                      <span key={`${word}-${i}`} data-word className="opacity-0">
-                        {word}{" "}
-                      </span>
-                    ))}
+                        wrapping and word spacing are untouched.
+
+                        Tokens carrying no visible glyph are emitted inert. The
+                        first paragraph is indented with a run of U+200E marks,
+                        and `split` turns those into a dozen zero-width "words":
+                        wrapped, they spend the opening third of both sweeps
+                        animating nothing, which pushes the live edge of the
+                        exit dissolve up behind the sticky marquee where no one
+                        can see it. */}
+                    {paragraph.split(/\s+/).map((word, i) =>
+                      /[^\s\p{Cf}]/u.test(word) ? (
+                        <span key={`${word}-${i}`} data-word>
+                          <span data-word-ink className="opacity-0">
+                            {word}
+                          </span>{" "}
+                        </span>
+                      ) : (
+                        <span key={`mark-${i}`}>{word} </span>
+                      ),
+                    )}
                   </p>
                 ))}
               </div>

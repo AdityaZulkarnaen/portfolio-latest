@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
+import { gsap, killScrollTriggersIn, ScrollTrigger, useGSAP } from "@/lib/gsap";
 import { buildLogoAtlas, type LogoAtlas } from "@/lib/build-logo-atlas";
 import { waitForFont } from "@/lib/sample-text-to-points";
 import { useFinePointer, useReducedMotion } from "@/lib/use-media-query";
@@ -137,6 +137,7 @@ export default function TechStack() {
   useGSAP(
     () => {
       if (reducedMotion) {
+        killScrollTriggersIn(wrapperRef.current);
         gsap.set("[data-tech-slat]", { scaleY: 1 });
         return;
       }
@@ -173,6 +174,7 @@ export default function TechStack() {
       if (!wrapper || !head) return;
 
       if (reducedMotion) {
+        killScrollTriggersIn(wrapper);
         // A held composition rather than a frozen mid-animation frame: the tag
         // sits cracked open, the tunnel shows one slice, the heading is simply
         // there. `code-tag` and `logo-tunnel` pin their own static values.
@@ -229,10 +231,17 @@ export default function TechStack() {
   return (
     <div ref={wrapperRef} className="relative z-30 h-[460svh] w-full">
       {/* Sits directly on the outside of the chapter's top edge and moves with
-          it — this section's own reach into the space above. */}
+          it — this section's own reach into the space above.
+
+          The reach is shorter on mobile. Chapter .02 stacks its aside below the
+          bio there instead of pinning it, so its last screenful is live content
+          rather than the empty column desktop leaves behind; a 55svh reach ate
+          the photo deck. The panel above pairs this with a matching tail of
+          empty ground, and the invariant between them is simply that the tail
+          must be at least as tall as this band. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-full flex h-[55svh] flex-col"
+        className="pointer-events-none absolute inset-x-0 bottom-full flex h-[30svh] flex-col md:h-[55svh]"
       >
         {Array.from({ length: SLATS }, (_, i) => (
           <span
