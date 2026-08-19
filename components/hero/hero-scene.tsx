@@ -6,6 +6,7 @@ import { PerformanceMonitor } from "@react-three/drei";
 import type { TextSample } from "@/lib/sample-text-to-points";
 import type { HeroMotion } from "./hero-motion";
 import ParticleField from "./particle-field";
+import StarField from "./star-field";
 
 export type HeroSceneProps = {
   sample: TextSample;
@@ -46,6 +47,12 @@ export default function HeroScene({
       frameloop={reducedMotion ? "demand" : active ? "always" : "never"}
     >
       <PerformanceMonitor onDecline={() => setMaxDpr(1)} />
+      {/* Drawn first (renderOrder -1) so it sits behind the wordmark. */}
+      <StarField
+        motionRef={motionRef}
+        pointerEnabled={pointerEnabled}
+        reducedMotion={reducedMotion}
+      />
       <ParticleField
         sample={sample}
         motionRef={motionRef}

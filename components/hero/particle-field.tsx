@@ -57,7 +57,7 @@ export default function ParticleField({
 }: ParticleFieldProps) {
   const { viewport, invalidate, camera } = useThree();
   const readyFired = useRef(false);
-  const count = sample.positions.length / 3;
+  const count = sample.positions.length / 5;
 
   // Built imperatively rather than as <shaderMaterial uniforms={...} />, because
   // R3F copies a `uniforms` prop onto the material — leaving the object we hold
