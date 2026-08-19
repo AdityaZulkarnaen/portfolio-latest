@@ -10,13 +10,12 @@ import {
 import { useFinePointer, useReducedMotion } from "@/lib/use-media-query";
 import { useSmoothScroll } from "@/lib/use-smooth-scroll";
 import { useWebGLSupport } from "@/lib/use-webgl-support";
+import { META_TYPE } from "@/lib/site-config";
 import HeroCanvas from "./hero-canvas";
 import { heroCopy } from "./hero-copy";
 import HeroHud from "./hero-hud";
 import HeroLoader from "./hero-loader";
 import { createHeroMotion, resolveParticleCount } from "./hero-motion";
-
-const META_CLASS = "font-mono text-[11px] uppercase tracking-[0.18em] text-muted";
 
 export default function Hero() {
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -92,18 +91,31 @@ export default function Hero() {
   }, []);
   useSmoothScroll(!reducedMotion, handleVelocity);
 
-  const handlePointerMove = useCallback((event: React.PointerEvent) => {
-    // The canvas fills the sticky hero, which is exactly the viewport, so
-    // window dimensions are correct here and cost no layout read.
-    const motion = motionRef.current;
-    motion.pointerX = (event.clientX / window.innerWidth) * 2 - 1;
-    motion.pointerY = -((event.clientY / window.innerHeight) * 2 - 1);
-    motion.pointerInside = 1;
-  }, []);
+  // Tracked on window rather than on the hero section: the global nav is a fixed
+  // overlay, so section-scoped handlers would leave a dead zone across the top
+  // of the screen where the particles stop responding. The canvas fills the
+  // sticky hero, which is exactly the viewport, so window coords map directly
+  // and cost no layout read.
+  useEffect(() => {
+    if (!finePointer) return;
 
-  const handlePointerLeave = useCallback(() => {
-    motionRef.current.pointerInside = 0;
-  }, []);
+    const onMove = (event: PointerEvent) => {
+      const motion = motionRef.current;
+      motion.pointerX = (event.clientX / window.innerWidth) * 2 - 1;
+      motion.pointerY = -((event.clientY / window.innerHeight) * 2 - 1);
+      motion.pointerInside = 1;
+    };
+    const onLeave = () => {
+      motionRef.current.pointerInside = 0;
+    };
+
+    window.addEventListener("pointermove", onMove, { passive: true });
+    document.documentElement.addEventListener("pointerleave", onLeave);
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      document.documentElement.removeEventListener("pointerleave", onLeave);
+    };
+  }, [finePointer]);
 
   const writeSignal = useCallback((value: number) => {
     const percent = Math.round(value * 100);
@@ -231,8 +243,6 @@ export default function Hero() {
       <section
         ref={sectionRef}
         id="hero"
-        onPointerMove={finePointer ? handlePointerMove : undefined}
-        onPointerLeave={finePointer ? handlePointerLeave : undefined}
         className="sticky top-0 h-svh w-full overflow-hidden"
       >
         {/* Cheap stand-in for a bloom pass: one gradient, zero render cost. */}
@@ -276,31 +286,13 @@ export default function Hero() {
 
         <div
           ref={contentRef}
-          className="pointer-events-none relative z-10 flex h-full flex-col justify-between p-5 md:p-8"
+          className="pointer-events-none relative z-10 flex h-full flex-col justify-end p-5 md:p-8"
         >
-          <header className={`flex items-start justify-between ${META_CLASS}`}>
-            <span className="pointer-events-auto text-ink">
-              {heroCopy.brand}
-              <span className="text-acid">.</span>
-            </span>
-            <nav className="pointer-events-auto hidden gap-7 sm:flex">
-              {heroCopy.nav.map((item) => (
-                <a
-                  key={item.label}
-                  href={item.href}
-                  className="transition-colors hover:text-acid"
-                >
-                  {item.label}
-                </a>
-              ))}
-            </nav>
-          </header>
-
           {/* The particles are decorative; this is what a screen reader gets. */}
           <h1 className="sr-only">{heroCopy.heading}</h1>
 
           <footer
-            className={`grid gap-8 md:grid-cols-[1fr_auto_1fr] md:items-end ${META_CLASS}`}
+            className={`flex md:justify-between flex-col md:flex-row gap-8 md:items-end ${META_TYPE}`}
           >
             <div className="space-y-3">
               <div className="overflow-hidden">
@@ -311,21 +303,21 @@ export default function Hero() {
               <div className="overflow-hidden">
                 <p
                   data-reveal
-                  className="max-w-[36ch] font-sans text-sm normal-case leading-relaxed tracking-normal text-muted"
+                  className="max-w-[52ch] font-sans text-sm normal-case leading-relaxed tracking-normal text-ink"
                 >
                   {heroCopy.tagline.join(" ")}
                 </p>
               </div>
             </div>
 
-            <div className="hidden justify-self-center md:block">
+            {/* <div className="hidden justify-self-center md:block">
               <div className="overflow-hidden">
                 <div data-reveal className="flex flex-col items-center gap-2">
                   <span className="block h-10 w-px bg-gradient-to-b from-acid to-transparent" />
                   <span>{heroCopy.scrollCue}</span>
                 </div>
               </div>
-            </div>
+            </div> */}
 
             <div className="space-y-3 md:justify-self-end">
               <div className="overflow-hidden">

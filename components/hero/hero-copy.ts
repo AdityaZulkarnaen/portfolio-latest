@@ -5,16 +5,8 @@ export const heroCopy = {
   /** The real, accessible heading. Visually hidden; the particles are decorative. */
   heading: "Aditya Zulkarnaen — Creative Frontend Developer",
   eyebrow: "[ 01 ] NOISE → SIGNAL",
-  brand: "ADITYA Z",
-  nav: [
-    { label: "INDEX", href: "#" },
-    { label: "WORK", href: "#" },
-    { label: "ABOUT", href: "#" },
-    { label: "CONTACT", href: "#" },
-  ],
   tagline: [
-    "Creative Frontend Developer.",
-    "I turn scattered ideas into interfaces that feel inevitable.",
+    "Passionate developer who excels in crafting scalable architectures and thrives under pressure, converting complex technical bottlenecks into seamless, scalable, production-ready systems.",
   ],
   status: "OPEN FOR WORK — 2026",
   scrollCue: "SCROLL TO DISSOLVE",

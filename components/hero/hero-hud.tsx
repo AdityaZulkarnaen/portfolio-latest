@@ -20,7 +20,7 @@ export default function HeroHud({ labelRef, barRef, valueRef }: HeroHudProps) {
       <span ref={labelRef} className="text-acid">
         {heroCopy.signalLabel}
       </span>
-      <span className="relative block h-px w-16 overflow-hidden bg-line sm:w-24">
+      <span className="relative block h-px w-16 overflow-hidden bg-ink sm:w-24">
         <span
           ref={barRef}
           className="absolute inset-0 origin-left scale-x-0 bg-acid"
