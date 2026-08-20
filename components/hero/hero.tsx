@@ -412,7 +412,7 @@ export default function Hero() {
                 <p
                   data-reveal
                   data-scramble-soft
-                  className="max-w-[52ch] font-sans text-lg normal-case leading-relaxed tracking-normal text-ink"
+                  className="max-w-[52ch] font-mono text-lg normal-case leading-relaxed tracking-normal text-ink"
                 >
                   {heroCopy.tagline.join(" ")}
                 </p>

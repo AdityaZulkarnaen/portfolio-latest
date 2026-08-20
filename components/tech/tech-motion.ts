@@ -55,6 +55,22 @@ export function resolveLogoCount(): number {
 }
 
 /**
+ * Edge of one atlas cell, in pixels — the texture budget for the whole chapter.
+ *
+ * The sheet is `ceil(sqrt(n))` cells wide, so twenty marks at 384 is a
+ * 1920x1536 texture: about 16MB of VRAM once mipmapped. Worth it on a desktop,
+ * where a tile approaching the lens covers half the frame and a 256 cell is
+ * visibly soft by then; not worth it on a phone, where it never gets that
+ * close and the memory is scarcer.
+ *
+ * Read once on mount, alongside the instance count.
+ */
+export function resolveAtlasTile(): number {
+  if (typeof window === "undefined") return 256;
+  return window.innerWidth < 640 ? 256 : 384;
+}
+
+/**
  * Remaps a master 0..1 scroll progress onto one phase of the chapter.
  *
  * Every beat is derived from the same `self.progress` through this, so the tag,

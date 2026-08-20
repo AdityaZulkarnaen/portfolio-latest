@@ -10,7 +10,13 @@ import { META_TYPE_BASE } from "@/lib/site-config";
 import TechCanvas from "./tech-canvas";
 import { techCopy } from "./tech-copy";
 import TechHud from "./tech-hud";
-import { BEAT, createTechMotion, phase, resolveLogoCount } from "./tech-motion";
+import {
+  BEAT,
+  createTechMotion,
+  phase,
+  resolveAtlasTile,
+  resolveLogoCount,
+} from "./tech-motion";
 
 /** Slabs the chapter reaches up with, matching Chapter .02's takeover. */
 const SLATS = 3;
@@ -64,7 +70,11 @@ export default function TechStack() {
       await waitForFont(fontFamily, 700);
       if (cancelled) return;
 
-      const next = await buildLogoAtlas(techCopy.stack, fontFamily);
+      const next = await buildLogoAtlas(
+        techCopy.stack,
+        fontFamily,
+        resolveAtlasTile(),
+      );
       if (cancelled || !next) return;
 
       // Read once, here: the instanced buffers are allocated against this and
@@ -306,19 +316,32 @@ export default function TechStack() {
           </h2>
         </div>
 
-        {/* Progressive-enhancement base: without WebGL the chapter is still a
-            legible list of the stack, drawn in the same register. */}
-        {!webgl ? (
-          <div className="pointer-events-none absolute inset-x-0 bottom-24 z-10 px-5 md:px-8">
-            <ul
-              className={`flex flex-wrap justify-center gap-x-6 gap-y-2 ${META_TYPE_BASE} text-muted`}
-            >
-              {techCopy.stack.map((tile) => (
-                <li key={tile.label}>{tile.name}</li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
+        {/* One list doing two jobs. Without WebGL it is the chapter's visible
+            content, drawn in the same register as the rest of the meta type.
+            With WebGL it stays in the tree as screen-reader text, because the
+            canvas is `aria-hidden` and the logos are the only place the stack
+            is ever stated — a heading reading "TECH STACK" over a decorative
+            tunnel otherwise announces a section with no contents. */}
+        <div
+          className={
+            webgl
+              ? "sr-only"
+              : "pointer-events-none absolute inset-x-0 bottom-24 z-10 px-5 md:px-8"
+          }
+        >
+          <h3 className="sr-only">{techCopy.stackLabel}</h3>
+          <ul
+            className={
+              webgl
+                ? undefined
+                : `flex flex-wrap justify-center gap-x-6 gap-y-2 ${META_TYPE_BASE} text-muted`
+            }
+          >
+            {techCopy.stack.map((tile) => (
+              <li key={tile.name}>{tile.name}</li>
+            ))}
+          </ul>
+        </div>
 
         <TechHud barRef={depthBarRef} valueRef={depthValueRef} />
       </section>
