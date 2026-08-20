@@ -229,3 +229,65 @@ html.lenis body {
     --peel: 0 !important;
   }
 }
+
+/* ─── Fixed chrome standing on an acid ground ──────────────────────────────
+   The nav, the chapter rail and the pointer trail belong to no chapter but are
+   always on top of one. Two of them solve that with `mix-blend-difference`,
+   which held for as long as every ground on the page was either the void or
+   Chapter .02's mid-grey slab. Chapter .05 is acid, and acid breaks all three
+   of them at once: difference sends ink to #110DF0, a hard blue, and the two
+   pieces that are flat acid on purpose — the rail's thumb and the trail —
+   disappear into the ground entirely.
+
+   So on an acid ground the chrome is flipped by hand: blending off, everything
+   in void. Monochrome, deliberately. The acid accents (the brand's dot, the
+   thumb) have no louder colour available to them here — on this ground the
+   void IS the accent, and a second one would only compete with the chapter.
+
+   `site-ground.tsx` stamps the flags; a section opts in with `data-ground`.
+   Nothing below knows which chapter it is looking at.
+
+   The two flags are measured at different heights because the furniture sits
+   at different heights: `-top` for the nav's band, `-mid` for the rail, which
+   hangs centred down the right edge, and the trail, which is full-screen. */
+
+html[data-ground-top="acid"] [data-nav] {
+  mix-blend-mode: normal;
+  color: var(--color-void);
+}
+
+/* Beats Tailwind's `hover:text-acid` on specificity alone — an acid hover on
+   an acid ground is a link that disappears when you point at it. */
+html[data-ground-top="acid"] [data-nav] a:hover {
+  color: var(--color-void);
+  opacity: 0.55;
+}
+
+html[data-ground-top="acid"] [data-nav-dot] {
+  color: var(--color-void);
+}
+
+html[data-ground-mid="acid"] [data-tick] {
+  mix-blend-mode: normal;
+  color: var(--color-void);
+}
+
+html[data-ground-mid="acid"] [data-tick-dash] {
+  background-color: var(--color-void);
+}
+
+/* The void at the same 25% the hairline carries as ink on the dark chapters. */
+html[data-ground-mid="acid"] [data-rail-line] {
+  mix-blend-mode: normal;
+  background-color: rgba(8, 8, 10, 0.25);
+}
+
+html[data-ground-mid="acid"] [data-rail-thumb] {
+  background-color: var(--color-void);
+}
+
+/* Every cell of the trail's lattice. Their opacity is written per frame from
+   JS and is left alone here — only the colour changes. */
+html[data-ground-mid="acid"] [data-trail] > div {
+  background-color: var(--color-void);
+}

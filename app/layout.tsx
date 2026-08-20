@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import SiteGround from "@/components/site-ground";
 import SiteNav from "@/components/site-nav";
 import SiteScroll from "@/components/site-scroll";
 import SiteSmoothScroll from "@/components/site-smooth-scroll";
@@ -29,6 +30,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <SiteTrail />
         <SiteNav />
         <SiteScroll />
+        {/* Renders nothing; it stamps the ground colour under each band of
+            fixed chrome onto the root, and `globals.css` does the rest. */}
+        <SiteGround />
         {/* Renders nothing; it exists so one Lenis instance covers every route
             rather than only the pages that happen to contain the hero. */}
         <SiteSmoothScroll />

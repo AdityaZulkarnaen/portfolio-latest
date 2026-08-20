@@ -264,8 +264,8 @@ export default function About() {
           >
             <span>{aboutCopy.seamLeft}</span>
             <span className="flex items-center gap-2">
-              <span className="size-1.5 rounded-full bg-void/60" />
-              {aboutCopy.seamRight}
+              {/* <span className="size-1.5 rounded-full bg-void/60" />
+              {aboutCopy.seamRight} */}
             </span>
           </div>
 

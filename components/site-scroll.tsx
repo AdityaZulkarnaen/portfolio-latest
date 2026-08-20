@@ -173,7 +173,10 @@ export default function SiteScroll() {
         {/* Chapter marks, hung off the rail. `difference` for the same reason
             the nav uses it: this furniture crosses both the void chapters and
             Chapter .02's light slab, and inverting against the backdrop beats
-            swapping colours on a scroll listener. */}
+            swapping colours on a scroll listener — on those two grounds. Acid
+            is the exception the nav documents, and it is flipped by hand in
+            `globals.css` off `site-ground.tsx`'s flags. Measured at the middle
+            of the screen for this rail, not the top: it hangs centred. */}
         <div className="relative w-14 md:w-20">
           {chapters.map((chapter) => (
             <div
@@ -187,7 +190,10 @@ export default function SiteScroll() {
               <span className="hidden md:inline">{chapter.name}</span>
               <span>{chapter.mark}</span>
               {/* Grows on the chapter you are in — the rail reads as a dial. */}
-              <span className="block h-px w-2 bg-ink transition-all duration-500 group-data-[active=true]:w-4" />
+              <span
+                data-tick-dash
+                className="block h-px w-2 bg-ink transition-all duration-500 group-data-[active=true]:w-4"
+              />
             </div>
           ))}
         </div>
@@ -202,12 +208,16 @@ export default function SiteScroll() {
         >
           <span
             aria-hidden
+            data-rail-line
             className="absolute left-1/2 top-0 h-full w-px -translate-x-1/2 bg-ink/25 mix-blend-difference"
           />
           {/* Flat acid, no blend: it has to stay brilliant on the light slab
-              too, and `difference` turns acid into muddy sage there. */}
+              too, and `difference` turns acid into muddy sage there. The one
+              ground it cannot survive is its own — on Chapter .05 the thumb
+              would be the ground — so that case recolours it to void. */}
           <span
             ref={thumbRef}
+            data-rail-thumb
             className={`absolute left-1/2 top-0 w-[3px] -translate-x-1/2 rounded-full bg-acid ${
               reducedMotion ? "" : "will-change-transform"
             }`}

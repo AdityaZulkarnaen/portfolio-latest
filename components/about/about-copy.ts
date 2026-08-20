@@ -22,7 +22,7 @@ export const aboutCopy = {
   resumeHref: "/resume.pdf",
   /** Left of the seam that closes over the hero. */
   seamLeft: "CHAPTER .02 // ABOUT",
-  seamRight: "SECTION LOCKED",
+  seamRight: "",
   deckLabel: "IMG",
   deckHint: "CLICK TO ADVANCE",
   /**

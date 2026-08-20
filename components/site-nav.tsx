@@ -22,13 +22,21 @@ export default function SiteNav() {
       {/* `mix-blend-difference` instead of a fixed colour: the page now scrolls
           a light slab (Chapter .02) under a nav that used to only ever sit on
           the void, and inverting against the backdrop keeps it legible on both
-          without a scroll listener swapping classes. */}
+          without a scroll listener swapping classes.
+
+          Both, and only both. Difference against Chapter .05's acid sends ink
+          to a hard blue, so that ground is the one case handled by hand: the
+          section declares `data-ground`, `site-ground.tsx` stamps it on the
+          root, and `globals.css` turns the blending off and the type void. */}
       <div
+        data-nav
         className={`relative flex items-start justify-between p-5 mix-blend-difference md:p-8 ${META_TYPE}`}
       >
         <Link href="/" className="transition-colors hover:text-acid">
           {siteConfig.brand}
-          <span className="text-acid">.</span>
+          <span data-nav-dot className="text-acid">
+            .
+          </span>
         </Link>
 
         <nav aria-label="Main" className="hidden gap-7 sm:flex">

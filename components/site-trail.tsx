@@ -45,7 +45,10 @@ type Grid = { cols: number; rows: number; cellW: number; cellH: number };
  * and over Chapter .02's light slab it washes the trail out to a faint smear.
  * The nav solves the same two-ground problem with `difference`, which is right
  * for type but turns acid into muddy sage. Acid is bright enough to hold on
- * both grounds unaided.
+ * both grounds unaided — but not on a third one made of acid, where the trail
+ * would be painting the ground onto itself. Chapter .05 declares that ground
+ * and `globals.css` recolours the lattice to void while it is under the
+ * pointer; nothing in here changes, only the cells' `background-color`.
  *
  * `fixed` and driven by raw client coords, so it is unaffected by scroll,
  * sticky frames or which chapter currently owns the screen. Mounted below the
@@ -240,6 +243,7 @@ export default function SiteTrail() {
     <div
       ref={rootRef}
       aria-hidden
+      data-trail
       className="pointer-events-none fixed inset-0 z-40 grid overflow-hidden"
       style={
         grid
