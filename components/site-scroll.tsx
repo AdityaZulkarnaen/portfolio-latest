@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { getLenis } from "@/lib/use-smooth-scroll";
 import { useReducedMotion } from "@/lib/use-media-query";
 import { META_TYPE_BASE } from "@/lib/site-config";
@@ -30,6 +31,7 @@ type Chapter = {
  * keep animating toward its own stale target and fight the drag.
  */
 export default function SiteScroll() {
+  const pathname = usePathname();
   const railRef = useRef<HTMLDivElement>(null);
   const thumbRef = useRef<HTMLSpanElement>(null);
   const reducedMotion = useReducedMotion();
@@ -71,7 +73,11 @@ export default function SiteScroll() {
       observer.disconnect();
       window.removeEventListener("resize", measure);
     };
-  }, []);
+    // Re-runs on navigation. The ResizeObserver usually catches a route change
+    // too, since page heights differ — but "usually" is not a guarantee, and
+    // the failure mode is a project page wearing the homepage's chapter ticks
+    // with no scrollbar of its own.
+  }, [pathname]);
 
   // Position is written straight to the DOM. The rail updates on every frame of
   // a smooth scroll, and routing that through state would re-render the page
@@ -111,6 +117,22 @@ export default function SiteScroll() {
       window.removeEventListener("resize", sync);
     };
   }, [chapters]);
+
+  // Tells the stylesheet the rail exists on this page. `globals.css` hides the
+  // native scrollbar only under this flag, because the rail is the replacement
+  // for it — and on a page with no chapters there is no rail, so taking the
+  // native bar away too would leave nothing to scroll with.
+  useEffect(() => {
+    const root = document.documentElement;
+    if (chapters.length === 0) {
+      delete root.dataset.rail;
+      return;
+    }
+    root.dataset.rail = "";
+    return () => {
+      delete root.dataset.rail;
+    };
+  }, [chapters.length]);
 
   const seek = useCallback((clientY: number) => {
     const rail = railRef.current;

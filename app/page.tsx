@@ -1,4 +1,5 @@
 import About from "@/components/about/about";
+import FeaturedWorks from "@/components/works/featured-works";
 import Hero from "@/components/hero/hero";
 import TechStack from "@/components/tech/tech-stack";
 
@@ -8,6 +9,7 @@ export default function Home() {
       <Hero />
       <About />
       <TechStack />
+      <FeaturedWorks />
     </main>
   );
 }

@@ -71,12 +71,17 @@ html.lenis body {
    rail is hidden (there is no room for it beside full-bleed content), and
    hiding the native bar too would leave a very long page with no position
    feedback at all. */
+/* Gated on the rail actually being there. `site-scroll.tsx` returns null when
+   it finds no `[data-chapter]` on the page and stamps `data-rail` on the root
+   when it does — so a project page, or any page without chapters, keeps the
+   native bar instead of having no scroll affordance at all. Also covers the
+   no-JS case, where the rail never mounts on any page. */
 @media (min-width: 40rem) {
-  html {
+  html[data-rail] {
     scrollbar-width: none;
   }
 
-  html::-webkit-scrollbar {
+  html[data-rail]::-webkit-scrollbar {
     display: none;
   }
 }
@@ -153,5 +158,55 @@ html.lenis body {
 @media (min-width: 48rem) {
   [data-outline] {
     -webkit-text-stroke-width: 1.5px;
+  }
+}
+
+/* Chapter .04's tiles are notes stuck to a board: glued along the top edge,
+   curling away at the bottom, lying flat once the scroll brings them level
+   with the middle of the frame.
+
+   The whole effect is one number. `featured-works.tsx` writes `--peel` (1 =
+   curled, 0 = flat) straight to the element from the scroll, and every
+   property below is derived from it here — so the JS never has to know what
+   the curl looks like, and the look can be retuned without touching a line of
+   it. `transform-origin` at the top edge is what makes it read as adhesion
+   rather than as a card tumbling in.
+
+   Default 0: before JS runs, and with JS off entirely, the grid is a clean
+   flat set of rectangles rather than a pile of half-peeled tiles. */
+[data-peel] {
+  --peel: 0;
+  --peel-tilt: 0deg;
+  transform-origin: 50% 0%;
+  transform: perspective(1100px) translateY(calc(var(--peel) * 1.35rem))
+    rotateX(calc(var(--peel) * -13deg))
+    rotateZ(calc(var(--peel) * var(--peel-tilt)))
+    scale(calc(1 - var(--peel) * 0.045));
+  opacity: calc(1 - var(--peel) * 0.3);
+  box-shadow: 0 calc(var(--peel) * 2.4rem) calc(var(--peel) * 3.6rem) -1.5rem
+    rgba(0, 0, 0, calc(var(--peel) * 0.9));
+  will-change: transform;
+}
+
+/* The lifted edge catching the light. Clipped by the tile's own
+   `overflow-hidden`, and sitting below the acid chip, which claims z-10. */
+[data-peel]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    to top,
+    rgba(242, 242, 240, 0.14),
+    transparent 45%
+  );
+  opacity: var(--peel);
+}
+
+/* Belt and braces with the JS branch: this one also holds for the frames
+   before `useGSAP` has run. */
+@media (prefers-reduced-motion: reduce) {
+  [data-peel] {
+    --peel: 0 !important;
   }
 }
