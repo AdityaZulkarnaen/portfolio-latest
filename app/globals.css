@@ -6,6 +6,11 @@
   --color-muted: #8a8a85;
   --color-line: #1e1e20;
   --color-acid: #e1ff00;
+  /* Chapter .01's flow field. Kept here as well as in the shader because the
+     DOM layer draws on the same palette — the outlined wordmark and the
+     no-WebGL fallback both have to match what the GPU is painting. */
+  --color-violet: #2c1155;
+  --color-lilac: #cba7f5;
   /* Chapter .02 flips the polarity: a concrete slab laid over the void. */
   --color-slab: #97978f;
   --color-slab-deep: #7f7f78;
@@ -126,5 +131,27 @@ html.lenis body {
   }
   to {
     transform: scaleX(1);
+  }
+}
+
+/* Chapter .01's second wordmark line is drawn rather than filled, so the flow
+   field keeps running through the counters. That is what lets the name sit at
+   that size over a live image without smothering it — a solid second line at
+   the same scale reads as a bar across the frame.
+
+   `-webkit-text-stroke` is the only way to stroke text without duplicating the
+   node, and it is prefixed everywhere including Firefox. Where it is missing
+   the declaration is dropped and `color: transparent` would take the word with
+   it, so the colour is set in the same block: an unsupported browser gets a
+   solid lilac line, which is a worse composition but never an invisible one. */
+[data-outline] {
+  color: var(--color-lilac);
+  -webkit-text-fill-color: transparent;
+  -webkit-text-stroke: 1px var(--color-lilac);
+}
+
+@media (min-width: 48rem) {
+  [data-outline] {
+    -webkit-text-stroke-width: 1.5px;
   }
 }

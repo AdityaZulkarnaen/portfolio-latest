@@ -2,11 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
-import {
-  sampleTextToPoints,
-  waitForFont,
-  type TextSample,
-} from "@/lib/sample-text-to-points";
+import { waitForFont } from "@/lib/sample-text-to-points";
 import { useFinePointer, useReducedMotion } from "@/lib/use-media-query";
 import { useSmoothScroll } from "@/lib/use-smooth-scroll";
 import { useWebGLSupport } from "@/lib/use-webgl-support";
@@ -15,7 +11,7 @@ import HeroCanvas from "./hero-canvas";
 import { heroCopy } from "./hero-copy";
 import HeroHud from "./hero-hud";
 import HeroLoader from "./hero-loader";
-import { createHeroMotion, resolveParticleCount } from "./hero-motion";
+import { createHeroMotion, useFieldQuality } from "./hero-motion";
 
 /**
  * The pool the scramble draws from. Deliberately not the alphabet: uppercase
@@ -27,6 +23,10 @@ import { createHeroMotion, resolveParticleCount } from "./hero-motion";
  * and leaves entity fragments like `lt;` sitting in the copy.
  */
 const SCRAMBLE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/[]{}#*+=-_.:";
+
+/** Shared between the two wordmark lines so they cannot drift apart. */
+const WORDMARK_TYPE =
+  "block font-display text-[clamp(2.5rem,8.5vw,7.5rem)] font-black uppercase leading-[0.86] tracking-[-0.045em]";
 
 export default function Hero() {
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -50,15 +50,18 @@ export default function Hero() {
   const finePointer = useFinePointer();
   const webgl = useWebGLSupport();
 
-  const [sample, setSample] = useState<TextSample | null>(null);
   const [fontsReady, setFontsReady] = useState(false);
   const [sceneReady, setSceneReady] = useState(false);
   const [minElapsed, setMinElapsed] = useState(false);
   const [inView, setInView] = useState(true);
 
-  // Wait for the real webfont, then rasterise the wordmark into particle
-  // targets. The family is read off a live node rather than imported, so the
-  // sampler is guaranteed to use exactly the face the browser resolved.
+  // Reports the server default during hydration, which costs nothing: `webgl`
+  // reports false there too, so the canvas has not mounted yet either way.
+  const quality = useFieldQuality();
+
+  // The wordmark is the largest type on the page; a swap from the fallback
+  // metric mid-intro would shove the whole bottom block sideways. Waiting on
+  // the real face costs nothing visible — the loader is up until this resolves.
   useEffect(() => {
     let cancelled = false;
 
@@ -69,22 +72,13 @@ export default function Hero() {
         : "sans-serif";
 
       await waitForFont(fontFamily);
-      if (cancelled) return;
-      setFontsReady(true);
-      if (!webgl) return;
-
-      const next = sampleTextToPoints({
-        text: heroCopy.wordmark,
-        fontFamily,
-        count: resolveParticleCount(),
-      });
-      if (!cancelled) setSample(next);
+      if (!cancelled) setFontsReady(true);
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [webgl]);
+  }, []);
 
   useEffect(() => {
     const el = sectionRef.current;
@@ -102,31 +96,60 @@ export default function Hero() {
   }, []);
   useSmoothScroll(!reducedMotion, handleVelocity);
 
-  // Tracked on window rather than on the hero section: the global nav is a fixed
-  // overlay, so section-scoped handlers would leave a dead zone across the top
-  // of the screen where the particles stop responding. The canvas fills the
-  // sticky hero, which is exactly the viewport, so window coords map directly
-  // and cost no layout read.
+  // Tracked on window rather than on the hero section: the global nav is a
+  // fixed overlay, so section-scoped handlers would leave a dead zone across
+  // the top of the screen where the sphere stops following. The canvas fills
+  // the sticky hero, which is exactly the viewport, so client coords map
+  // straight onto the field and cost no layout read.
   useEffect(() => {
-    if (!finePointer) return;
+    if (reducedMotion) return;
+    const motion = motionRef.current;
 
-    const onMove = (event: PointerEvent) => {
-      const motion = motionRef.current;
+    const write = (event: PointerEvent) => {
       motion.pointerX = (event.clientX / window.innerWidth) * 2 - 1;
       motion.pointerY = -((event.clientY / window.innerHeight) * 2 - 1);
+    };
+
+    const onMove = (event: PointerEvent) => {
+      write(event);
       motion.pointerInside = 1;
     };
+
+    // A press displaces the fluid. The render loop owns the ripple's whole
+    // life; all this side does is say where and bump a counter, so a press
+    // that lands between two frames is still picked up on the next one.
+    const onDown = (event: PointerEvent) => {
+      if (!inView) return;
+      write(event);
+      motion.pointerInside = 1;
+      motion.pulseX = motion.pointerX;
+      motion.pulseY = motion.pointerY;
+      motion.pulseSeq += 1;
+    };
+
+    // Touch has no hover: the sphere is only handed over for the length of a
+    // drag, and goes back to its idle orbit the moment the finger lifts.
+    const release = () => {
+      if (!finePointer) motion.pointerInside = 0;
+    };
     const onLeave = () => {
-      motionRef.current.pointerInside = 0;
+      motion.pointerInside = 0;
     };
 
     window.addEventListener("pointermove", onMove, { passive: true });
+    window.addEventListener("pointerdown", onDown, { passive: true });
+    window.addEventListener("pointerup", release, { passive: true });
+    window.addEventListener("pointercancel", release, { passive: true });
     document.documentElement.addEventListener("pointerleave", onLeave);
+
     return () => {
       window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerdown", onDown);
+      window.removeEventListener("pointerup", release);
+      window.removeEventListener("pointercancel", release);
       document.documentElement.removeEventListener("pointerleave", onLeave);
     };
-  }, [finePointer]);
+  }, [finePointer, inView, reducedMotion]);
 
   const writeSignal = useCallback((value: number) => {
     const percent = Math.round(value * 100);
@@ -184,7 +207,7 @@ export default function Hero() {
       }
 
       if (reducedMotion) {
-        motion.progress = 1;
+        motion.reveal = 1;
         motion.dispersion = 0;
         writeSignal(1);
         gsap.set(loaderRef.current, { autoAlpha: 0 });
@@ -199,13 +222,17 @@ export default function Hero() {
           duration: 0.9,
           ease: "power4.inOut",
         })
+        // The field arrives as undifferentiated churn and settles into laminar
+        // flow. `power2.inOut` rather than `power3.out` because the long, even
+        // middle is the part worth watching — an ease-out front-loads it and
+        // the last third then reads as the animation having already stopped.
         .to(
           motion,
           {
-            progress: 1,
-            duration: 2.4,
-            ease: "power3.out",
-            onUpdate: () => writeSignal(motion.progress),
+            reveal: 1,
+            duration: 2.6,
+            ease: "power2.inOut",
+            onUpdate: () => writeSignal(motion.reveal),
             onComplete: () => writeSignal(1),
           },
           0.35,
@@ -223,8 +250,8 @@ export default function Hero() {
         // than appearing correct and then falling apart. `revealDelay` then
         // holds it at full noise until 0.9, which is exactly when the loader
         // finishes wiping up: nothing decodes behind the veil where it cannot
-        // be seen. What is left resolves alongside the particle assembly, so
-        // the wordmark and the copy come into focus as one gesture.
+        // be seen. What is left resolves alongside the field settling, so the
+        // copy and the flow come into focus as one gesture.
         //
         // `{original}` is the plugin reading the text already in the DOM, which
         // keeps the real copy server-rendered and the markup free of a
@@ -234,7 +261,6 @@ export default function Hero() {
           {
             duration: 1.5,
             ease: "none",
-            // 0.40 and 0.54 — the tagline decodes between them, at 0.47.
             stagger: 0.14,
             scrambleText: {
               text: "{original}",
@@ -271,10 +297,8 @@ export default function Hero() {
     { scope: wrapperRef, dependencies: [revealed, reducedMotion, writeSignal] },
   );
 
-  // Scroll-out. One ScrollTrigger drives both the shader dispersion and the DOM
-  // fade, so they can never drift apart.
-  // Scroll-out. One ScrollTrigger drives both the shader dispersion and the DOM
-  // fade, so they can never drift apart.
+  // Scroll-out. One ScrollTrigger drives both the shader's dispersion and the
+  // DOM fade, so they can never drift apart.
   useGSAP(
     () => {
       if (reducedMotion || !wrapperRef.current) return;
@@ -305,20 +329,14 @@ export default function Hero() {
     <div
       ref={wrapperRef}
       data-chapter=".01"
-      data-chapter-name="Intro"
+      data-chapter-name="Currents"
       className="relative h-[200svh] w-full"
     >
       <section
         ref={sectionRef}
         id="hero"
-        className="sticky top-0 h-svh w-full overflow-hidden"
+        className="sticky top-0 h-svh w-full overflow-hidden bg-void"
       >
-        {/* Cheap stand-in for a bloom pass: one gradient, zero render cost. */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(58%_42%_at_50%_50%,rgba(225,255,0,0.08),transparent_72%)]"
-        />
-
         {/* Never display:none — a hidden node would not trigger the font load. */}
         <span
           ref={fontProbeRef}
@@ -328,12 +346,12 @@ export default function Hero() {
           {heroCopy.wordmark}
         </span>
 
-        {webgl && sample ? (
+        {webgl ? (
           <div aria-hidden className="absolute inset-0">
             <HeroCanvas
-              sample={sample}
               motionRef={motionRef}
-              pointerEnabled={finePointer}
+              quality={quality}
+              pointerEnabled={!reducedMotion}
               reducedMotion={reducedMotion}
               active={inView}
               onReady={handleSceneReady}
@@ -341,23 +359,45 @@ export default function Hero() {
           </div>
         ) : null}
 
+        {/* Progressive-enhancement base: the same rake, the same palette, one
+            repeating gradient. It ships in the server HTML and is what a
+            visitor without WebGL keeps. */}
         {!webgl ? (
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-0 grid place-items-center px-6"
+            className="pointer-events-none absolute inset-0 bg-[linear-gradient(0deg,#08080a_30%,#2c1155_100%)]"
           >
-            <span className="font-display text-[clamp(3rem,15vw,13rem)] font-black uppercase leading-none tracking-[-0.04em] text-ink">
-              {heroCopy.wordmark}
-            </span>
+            <div className="absolute inset-0 opacity-60 [background:repeating-linear-gradient(67deg,#cba7f5_0_2px,transparent_2px_8px)]" />
           </div>
         ) : null}
+
+        {/* The field is at its most detailed exactly where the copy sits, so
+            the copy needs a ground. Bottom-up rather than a flat scrim: the
+            turbulent lower-right stays readable through the thin end of it. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-2/3 bg-gradient-to-t from-void via-void/70 to-transparent"
+        />
 
         <div
           ref={contentRef}
           className="pointer-events-none relative z-10 flex h-full flex-col justify-end p-5 md:p-8"
         >
-          {/* The particles are decorative; this is what a screen reader gets. */}
+          {/* The wordmark below is decorative; this is what a screen reader gets. */}
           <h1 className="sr-only">{heroCopy.heading}</h1>
+
+          <div aria-hidden className="mb-7 md:mb-9">
+            <div className="overflow-hidden">
+              <span data-reveal className={`${WORDMARK_TYPE} text-ink`}>
+                {heroCopy.wordmark}
+              </span>
+            </div>
+            <div className="overflow-hidden">
+              <span data-reveal data-outline className={WORDMARK_TYPE}>
+                {heroCopy.surname}
+              </span>
+            </div>
+          </div>
 
           <footer
             className={`flex md:justify-between flex-col md:flex-row gap-8 md:items-end ${META_TYPE}`}
@@ -379,15 +419,6 @@ export default function Hero() {
               </div>
             </div>
 
-            {/* <div className="hidden justify-self-center md:block">
-              <div className="overflow-hidden">
-                <div data-reveal className="flex flex-col items-center gap-2">
-                  <span className="block h-10 w-px bg-gradient-to-b from-acid to-transparent" />
-                  <span>{heroCopy.scrollCue}</span>
-                </div>
-              </div>
-            </div> */}
-
             <div className="space-y-3 md:justify-self-end">
               <div className="overflow-hidden">
                 <div data-reveal>
@@ -397,6 +428,11 @@ export default function Hero() {
                     valueRef={signalValueRef}
                   />
                 </div>
+              </div>
+              <div className="overflow-hidden">
+                <p data-reveal data-scramble className="text-muted">
+                  {heroCopy.hint}
+                </p>
               </div>
               <div className="overflow-hidden">
                 <p data-reveal className="flex items-center gap-2">
@@ -410,13 +446,14 @@ export default function Hero() {
             </div>
           </footer>
         </div>
-        {/* Driven by `slat-curtain.tsx`, which owns the crossover: whatever is
-            still visible between the closing slabs sinks back behind them. A
-            veil rather than a `filter` so the compositor only blends one flat
-            layer over the live canvas — and last in the section, at the same
-            z as the content it dims, so it covers the hero without ever
-            climbing over the curtain itself (equal z, and the curtain is
-            later in the tree). */}
+
+        {/* Driven by `about.tsx`, which owns the crossover: whatever is still
+            visible between the closing slabs sinks back behind them. A veil
+            rather than a `filter` so the compositor only blends one flat layer
+            over the live canvas — and last in the section, at the same z as
+            the content it dims, so it covers the hero without ever climbing
+            over the curtain itself (equal z, and the curtain is later in the
+            tree). */}
         <div
           data-hero-veil
           aria-hidden

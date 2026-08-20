@@ -1,16 +1,21 @@
 /** Every user-facing string in the hero lives here so copy edits stay in one file. */
 export const heroCopy = {
-  /** Rendered by the particle field. Keep it short and uppercase — it is sampled as glyph pixels. */
+  /** Line one of the wordmark. Set solid. */
   wordmark: "ADITYA",
-  /** The real, accessible heading. Visually hidden; the particles are decorative. */
+  /** Line two. Drawn as an outline so the field keeps running through it. */
+  surname: "ZULKARNAEN",
+  /** The real, accessible heading. Visually hidden; the wordmark is decorative. */
   heading: "Aditya Zulkarnaen — Creative Frontend Developer",
-  eyebrow: "Chapter .01 Introduction ---",
+  eyebrow: "Chapter .01 Currents ---",
   tagline: [
     "Passionate developer who excels in crafting scalable architectures and thrives under pressure, converting complex technical bottlenecks into seamless, scalable, production-ready systems.",
   ],
   status: "OPEN FOR WORK — 2026",
+  /** Says what the field will do if you touch it. Nothing else on screen does. */
+  hint: "MOVE THE MASS / CLICK TO DISPLACE",
   scrollCue: "SCROLL TO DISSOLVE",
-  signalLabel: "Loading",
-  signalLocked: "LOADED",
+  /** The readout narrates the field settling out of chaos into laminar flow. */
+  signalLabel: "Resolving",
+  signalLocked: "LAMINAR",
   loaderLabel: "INITIALISING",
 } as const;
