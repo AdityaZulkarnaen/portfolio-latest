@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
 import { waitForFont } from "@/lib/sample-text-to-points";
 import { useFinePointer, useReducedMotion } from "@/lib/use-media-query";
-import { useSmoothScroll } from "@/lib/use-smooth-scroll";
+import { useScrollVelocity } from "@/lib/use-smooth-scroll";
 import { useWebGLSupport } from "@/lib/use-webgl-support";
 import { META_TYPE } from "@/lib/site-config";
 import HeroCanvas from "./hero-canvas";
@@ -91,10 +91,13 @@ export default function Hero() {
     return () => observer.disconnect();
   }, []);
 
+  // Subscribes to the instance the root layout owns. The hero no longer
+  // creates it — mounting a second Lenis would put two rAF loops on the same
+  // document, each undoing the other's scroll.
   const handleVelocity = useCallback((velocity: number) => {
     motionRef.current.scrollVel = velocity;
   }, []);
-  useSmoothScroll(!reducedMotion, handleVelocity);
+  useScrollVelocity(handleVelocity);
 
   // Tracked on window rather than on the hero section: the global nav is a
   // fixed overlay, so section-scoped handlers would leave a dead zone across

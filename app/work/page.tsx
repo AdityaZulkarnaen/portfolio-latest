@@ -47,7 +47,7 @@ export default function WorkIndexPage() {
           </Link>
         </header>
 
-        <div className="grid grid-cols-12 gap-x-4 gap-y-10 md:gap-x-6 md:gap-y-16">
+        <div className="grid grid-cols-12 gap-x-4 gap-y-12 md:gap-x-10 md:gap-y-20">
           {works.map((work, i) => (
             <WorkCard key={work.slug} work={work} index={i} />
           ))}

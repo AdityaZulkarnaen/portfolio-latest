@@ -99,7 +99,7 @@ export default function FeaturedWorks() {
       // never climb over the nav.
       className="relative z-[35] w-full overflow-hidden bg-void"
     >
-      <BlueprintGrid />
+      {/* <BlueprintGrid /> */}
 
       <div className="relative mx-auto w-full max-w-[110rem] pb-28 pl-5 pr-5 pt-24 sm:pr-[var(--rail-gutter)] md:pb-40 md:pl-8 md:pt-32">
         <header className="mb-14 flex flex-wrap items-end justify-between gap-x-8 gap-y-6 md:mb-20">
@@ -137,7 +137,7 @@ export default function FeaturedWorks() {
           </div>
         </header>
 
-        <div className="grid grid-cols-12 gap-x-4 gap-y-10 md:gap-x-6 md:gap-y-16">
+        <div className="grid grid-cols-12 gap-x-4 gap-y-12 md:gap-x-10 md:gap-y-20">
           {featuredWorks.map((work, i) => (
             <WorkCard key={work.slug} work={work} index={i} peel />
           ))}

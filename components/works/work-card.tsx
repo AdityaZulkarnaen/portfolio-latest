@@ -50,7 +50,7 @@ export default function WorkCard({ work, index, peel = false }: WorkCardProps) {
         style={
           // Alternating, so two tiles side by side never curl in step — the
           // whole point of a note is that it was placed by a hand.
-          { "--peel-tilt": index % 2 === 0 ? "1.1deg" : "-1.1deg" } as React.CSSProperties
+          { "--peel-tilt": index % 2 === 0 ? "0.4deg" : "-0.4deg" } as React.CSSProperties
         }
         className={`relative overflow-hidden bg-[#101014] ring-1 ring-ink/[0.08] ${RATIO[work.ratio]}`}
       >
@@ -79,7 +79,7 @@ export default function WorkCard({ work, index, peel = false }: WorkCardProps) {
       {/* The caption is printed on the board, not on the note: it never peels,
           so the grid stays readable while the tiles are still settling. */}
       <div
-        className={`mt-3 flex items-baseline justify-between gap-4 ${META_TYPE_BASE}`}
+        className={`mt-5 flex items-baseline justify-between gap-4 ${META_TYPE_BASE}`}
       >
         <span className="text-ink transition-colors group-hover:text-acid">
           {work.name}

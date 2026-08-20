@@ -306,7 +306,7 @@ export default function TechStack() {
           <h2
             ref={headRef}
             data-tech-head
-            className="text-center font-display text-[clamp(3rem,14vw,12rem)] font-black uppercase leading-[0.82] tracking-[-0.045em] text-ink will-change-transform"
+            className="text-center font-blur text-[clamp(3rem,14vw,12rem)] font-black uppercase leading-[0.82] text-ink will-change-transform"
           >
             {techCopy.heading.map((line) => (
               <span key={line} className="block">

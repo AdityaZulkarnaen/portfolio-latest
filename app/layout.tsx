@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import SiteNav from "@/components/site-nav";
 import SiteScroll from "@/components/site-scroll";
+import SiteSmoothScroll from "@/components/site-smooth-scroll";
 import SiteTrail from "@/components/site-trail";
 import { archivo, blurWeb, geistMono, geistSans } from "@/lib/fonts";
 import "./globals.css";
@@ -28,6 +29,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <SiteTrail />
         <SiteNav />
         <SiteScroll />
+        {/* Renders nothing; it exists so one Lenis instance covers every route
+            rather than only the pages that happen to contain the hero. */}
+        <SiteSmoothScroll />
         {children}
       </body>
     </html>

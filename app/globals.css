@@ -162,15 +162,33 @@ html.lenis body {
 }
 
 /* Chapter .04's tiles are notes stuck to a board: glued along the top edge,
-   curling away at the bottom, lying flat once the scroll brings them level
-   with the middle of the frame.
+   the lower half peeling up off the board *toward the viewer*, lying flat once
+   the scroll brings them level with the middle of the frame.
 
    The whole effect is one number. `featured-works.tsx` writes `--peel` (1 =
    curled, 0 = flat) straight to the element from the scroll, and every
    property below is derived from it here — so the JS never has to know what
    the curl looks like, and the look can be retuned without touching a line of
-   it. `transform-origin` at the top edge is what makes it read as adhesion
-   rather than as a card tumbling in.
+   it.
+
+   `rotateX` is POSITIVE, and that is the load-bearing detail. CSS puts +Y down
+   and +Z toward the viewer, so a positive rotation about X swings the bottom
+   edge out of the screen; a negative one folds it in behind the page, which
+   reads as the tile sinking into the board rather than lifting off it. With
+   `transform-origin` on the top edge, positive is the direction that looks
+   like adhesion.
+
+   The remaining numbers are a solved fit, not taste. Perspective makes the
+   near edge grow, and the grown corners have to stay inside the column gutter
+   or two tiles sharing a row visibly collide at full curl — measured, an
+   earlier 15deg/1.1deg pass overhung by 27-39px per side against a 12px
+   budget. At 900px perspective, 16deg, 0.4deg of tilt and a 10% shrink, the
+   worst case overhangs 15.7px into a 20px budget (`md:gap-x-10`) and 7.4px
+   into the 20px above the caption (`mt-5`). Change any one of them and the
+   others stop adding up.
+
+   There is deliberately no `translateZ`: it spends overflow budget without
+   adding any trapezoid, and the trapezoid is the whole cue.
 
    Default 0: before JS runs, and with JS off entirely, the grid is a clean
    flat set of rectangles rather than a pile of half-peeled tiles. */
@@ -178,17 +196,18 @@ html.lenis body {
   --peel: 0;
   --peel-tilt: 0deg;
   transform-origin: 50% 0%;
-  transform: perspective(1100px) translateY(calc(var(--peel) * 1.35rem))
-    rotateX(calc(var(--peel) * -13deg))
+  transform: perspective(900px) translateY(calc(var(--peel) * 0.4rem))
+    rotateX(calc(var(--peel) * 16deg))
     rotateZ(calc(var(--peel) * var(--peel-tilt)))
-    scale(calc(1 - var(--peel) * 0.045));
-  opacity: calc(1 - var(--peel) * 0.3);
-  box-shadow: 0 calc(var(--peel) * 2.4rem) calc(var(--peel) * 3.6rem) -1.5rem
-    rgba(0, 0, 0, calc(var(--peel) * 0.9));
+    scale(calc(1 - var(--peel) * 0.1));
+  opacity: calc(1 - var(--peel) * 0.18);
+  box-shadow: 0 calc(var(--peel) * 2.6rem) calc(var(--peel) * 4rem) -1.5rem
+    rgba(0, 0, 0, calc(var(--peel) * 0.95));
   will-change: transform;
 }
 
-/* The lifted edge catching the light. Clipped by the tile's own
+/* The lifted edge catching the light: it is now angled toward the viewer, so
+   it takes more of it than the pinned top does. Clipped by the tile's own
    `overflow-hidden`, and sitting below the acid chip, which claims z-10. */
 [data-peel]::after {
   content: "";
@@ -197,8 +216,8 @@ html.lenis body {
   pointer-events: none;
   background: linear-gradient(
     to top,
-    rgba(242, 242, 240, 0.14),
-    transparent 45%
+    rgba(242, 242, 240, 0.17),
+    transparent 48%
   );
   opacity: var(--peel);
 }

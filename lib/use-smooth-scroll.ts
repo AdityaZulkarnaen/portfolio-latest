@@ -5,21 +5,17 @@ import Lenis from "lenis";
 import { gsap, ScrollTrigger } from "./gsap";
 
 /**
- * Runs Lenis off GSAP's ticker — one clock for the whole page instead of two
- * competing rAF loops — and keeps ScrollTrigger in sync with it.
- *
- * R3F drives its own rAF for `useFrame`, which is fine: nothing here touches
- * React state, it only reports scroll velocity through `onVelocity`.
- */
-/**
  * The instance currently driving the page, or null when smooth scroll is off.
  *
- * A module singleton because the hook runs exactly once, deep inside the hero,
- * and the scroll rail lives in the root layout: threading a ref up through the
- * tree would mean giving the layout state it has no other use for. Anything
- * that moves the page programmatically has to go through this — writing
- * `scrollTop` directly leaves Lenis animating toward its own stale target and
- * the page fights the pointer.
+ * A module singleton because exactly one component owns it — `site-smooth-
+ * scroll.tsx`, mounted in the root layout — while several unrelated things
+ * need to reach it: the scroll rail, and anything that moves the page
+ * programmatically. Threading a ref through the tree would mean giving the
+ * layout state it has no other use for.
+ *
+ * Anything that moves the page has to go through this. Writing `scrollTop`
+ * directly leaves Lenis animating toward its own stale target and the page
+ * fights the pointer.
  */
 export function getLenis(): Lenis | null {
   return current;
@@ -27,27 +23,59 @@ export function getLenis(): Lenis | null {
 
 let current: Lenis | null = null;
 
-export function useSmoothScroll(
-  enabled: boolean,
-  onVelocity?: (velocity: number) => void,
-) {
+/**
+ * Velocity listeners, kept in a module-level set rather than passed into the
+ * owner hook.
+ *
+ * This is what lets the hero read scroll velocity while the layout owns the
+ * instance. It cannot be done by reaching for `getLenis()` in an effect:
+ * effects run children-first, so the hero's effect fires *before* the layout
+ * component that creates Lenis has run its own, and would always find null.
+ * Subscribing to a registry has no such ordering problem — a subscriber
+ * registered before Lenis exists simply starts receiving values once it does.
+ */
+const velocityListeners = new Set<(velocity: number) => void>();
+
+/**
+ * Reports Lenis scroll velocity to `onVelocity` for as long as the component
+ * is mounted. Safe to call from anywhere, in any order, whether or not smooth
+ * scroll is currently enabled.
+ */
+export function useScrollVelocity(onVelocity: (velocity: number) => void) {
   // Latest-callback ref, written in an effect so nothing mutates during render.
-  const velocityCallback = useRef(onVelocity);
+  const callback = useRef(onVelocity);
   useEffect(() => {
-    velocityCallback.current = onVelocity;
+    callback.current = onVelocity;
   }, [onVelocity]);
 
-  const lenisRef = useRef<Lenis | null>(null);
+  useEffect(() => {
+    const listener = (velocity: number) => callback.current(velocity);
+    velocityListeners.add(listener);
+    return () => {
+      velocityListeners.delete(listener);
+    };
+  }, []);
+}
 
+/**
+ * Creates and owns the single Lenis instance for the whole document.
+ *
+ * Call this exactly once, from the root layout. It runs Lenis off GSAP's
+ * ticker — one clock for the page instead of two competing rAF loops — and
+ * keeps ScrollTrigger in sync with it.
+ *
+ * R3F drives its own rAF for `useFrame`, which is fine: nothing here touches
+ * React state, it only broadcasts velocity to the listeners above.
+ */
+export function useSmoothScroll(enabled: boolean) {
   useEffect(() => {
     if (!enabled) return;
 
     const lenis = new Lenis({ lerp: 0.1, smoothWheel: true });
-    lenisRef.current = lenis;
     current = lenis;
 
     const onScroll = () => {
-      velocityCallback.current?.(lenis.velocity);
+      for (const listener of velocityListeners) listener(lenis.velocity);
       ScrollTrigger.update();
     };
     lenis.on("scroll", onScroll);
@@ -61,10 +89,7 @@ export function useSmoothScroll(
       gsap.ticker.remove(raf);
       gsap.ticker.lagSmoothing(500, 33);
       lenis.destroy();
-      lenisRef.current = null;
       current = null;
     };
   }, [enabled]);
-
-  return lenisRef;
 }
