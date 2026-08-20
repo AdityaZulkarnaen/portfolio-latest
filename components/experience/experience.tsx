@@ -127,20 +127,31 @@ export default function Experience() {
       // gaps. Two lines' worth below `md`, where the role and the org sit
       // stacked rather than side by side.
       //
-      // `--exp-head` is where the stack parks, and the two breakpoints answer
-      // it differently. From `md` up it is the roof: the heading stays on
-      // screen and the bars gather under it. Below `md` it is only the nav's
-      // clearance, and the roof scrolls away — measured, a phone cannot afford
-      // both. The roof costs ~206px there, and the budget for the whole
-      // chapter (roof + every bar + the longest body) has to fit one small
-      // viewport or the foot of the open card is never reachable: it is parked,
-      // so it cannot be scrolled up to, and the lid closes over it where it
-      // stands. Dropping the roof buys back exactly that 206px.
+      // `--exp-head` is where the stack parks, and the chapter lives or dies
+      // on one budget:
       //
-      // `--exp-roof` is what the ResizeObserver writes. `--exp-head` reads it
-      // only at `md`, so the measurement never reaches the phone layout, and
-      // the value here is the fallback for the frame before JS runs.
-      className="relative z-[36] w-full bg-acid text-void [--exp-head:4.5rem] [--exp-roof:15rem] [--exp-row:4.5rem] md:[--exp-head:var(--exp-roof)] md:[--exp-row:clamp(4.75rem,6.4vw,6.5rem)]"
+      //     head + (n-1) * pitch + row + 2 + tallest body  <=  viewport height
+      //
+      // It is a hard constraint, not a preference. A parked card cannot be
+      // scrolled up to — it is holding still by definition — and the lid closes
+      // over it where it stands, so anything past the fold at that moment is
+      // never readable at all. Measured against the real GDGoC summary the old
+      // numbers overran a 1280x700 laptop by 135px.
+      //
+      // Note which axis that is. The bar's layout is a width question and stays
+      // on `md`; the budget is a height question and is gated on height. Those
+      // are not the same breakpoint and treating them as one is what broke it:
+      // a wide, short laptop got the tall layout.
+      //
+      // Above 780px of viewport the roof is affordable and the heading stays
+      // pinned over the stack. Below it the roof is spent: the heading scrolls
+      // away like any other heading and the bars park directly under the nav,
+      // which buys back its whole height.
+      //
+      // `--exp-roof` is what the ResizeObserver writes; `--exp-head` only reads
+      // it where the roof is pinned, and the value here is the fallback for the
+      // frame before JS runs.
+      className="relative z-[36] w-full bg-acid text-void [--exp-head:4.5rem] [--exp-roof:13rem] [--exp-row:4.5rem] md:[--exp-row:clamp(4.5rem,5.4vw,5.5rem)] [@media(min-height:780px)]:[--exp-head:var(--exp-roof)]"
     >
       {/* Sits directly on the outside of the chapter's top edge and moves with
           it — this section's own reach into the void above. */}
@@ -158,27 +169,27 @@ export default function Experience() {
       </div>
 
       <div className="mx-auto w-full max-w-[110rem] pl-5 pr-5 sm:pr-[var(--rail-gutter)] md:pl-8">
-        {/* The roof. From `md` up it is sticky at the very top, so the heading
-            is still there when the last card lands, and z-10 so the cards pass
-            behind it rather than over it once the stack peels away at the foot
-            of the chapter. The top padding is the fixed nav's clearance, and it
-            is inside the measured box on purpose — the cards stack under the
-            whole band.
+        {/* The roof. On a viewport tall enough to afford it (see the budget on
+            the section) it pins at the very top, so the heading is still there
+            when the last card lands, and z-10 keeps the cards passing behind it
+            rather than over it once the stack peels away at the foot of the
+            chapter. The top padding is the fixed nav's clearance, and it is
+            inside the measured box on purpose — the cards stack under the whole
+            band, not under the heading alone.
 
-            Below `md` it is neither: it scrolls away like an ordinary heading
-            and the bars pass over it, which is why the z-index is gated too. A
-            phone has no room to keep a roof and still land the last card whole,
-            and a heading that has already been read is the cheaper thing to
-            spend. */}
+            Under 780px it is neither pinned nor raised: it scrolls away like an
+            ordinary heading and the bars pass over it. A heading that has
+            already been read is the cheapest 200px on the screen, and the last
+            card needs them. */}
         <div
           ref={headRef}
-          className="bg-acid pb-5 pt-[5.5rem] md:sticky md:top-0 md:z-10 md:pb-8 md:pt-[8.5rem]"
+          className="bg-acid pb-5 pt-[5.5rem] [@media(min-height:780px)]:sticky [@media(min-height:780px)]:top-0 [@media(min-height:780px)]:z-10"
         >
           <div className="flex flex-wrap items-start justify-between gap-x-8 gap-y-5">
             <div className="overflow-hidden">
               <h2
                 data-exp-rise
-                className="max-w-[20ch] font-display text-[clamp(1.6rem,4.6vw,3.5rem)] font-black leading-[1.02] tracking-[-0.035em]"
+                className="max-w-[20ch] font-display text-[clamp(1.5rem,4vw,3rem)] font-black leading-[1.02] tracking-[-0.035em]"
               >
                 {experienceCopy.heading}
               </h2>
@@ -233,8 +244,13 @@ export default function Experience() {
                 </p>
               </div>
 
-              <div className="grid gap-3 pb-6 md:grid-cols-12 md:gap-8 md:pb-14">
-                <p className="max-w-[62ch] font-mono text-[11px] font-medium leading-[1.55] md:col-span-8 md:text-[13px]">
+              <div className="grid gap-3 pb-6 md:grid-cols-12 md:gap-8 md:pb-10">
+                {/* 62ch was costing eight lines of the longest summary on a
+                    screen with room for four. 88ch is still inside the readable
+                    band and takes two of them back — two lines here are worth
+                    more than they look, because they come straight off the
+                    budget the parked card is measured against. */}
+                <p className="max-w-[88ch] font-mono text-[11px] font-medium leading-[1.55] md:col-span-8 md:text-[13px]">
                   {item.summary}
                 </p>
                 <p
