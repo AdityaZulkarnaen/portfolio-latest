@@ -55,6 +55,22 @@ export default function Hero() {
   const [minElapsed, setMinElapsed] = useState(false);
   const [inView, setInView] = useState(true);
 
+  /**
+   * Whether the document was already scrolled past the hero when this mounted.
+   *
+   * A reload restores the previous scroll position, so someone refreshing
+   * halfway down the page lands in Chapter .03 or .04 with the hero far behind
+   * them. There is no intro to cover there — and the veil is `fixed inset-0`,
+   * so it would cover whatever chapter they actually reloaded into instead.
+   *
+   * Settled once, on the first layout pass, in the intro effect below: that is
+   * the earliest moment `window` exists and it is still before anything is
+   * painted. Null until then, which is also what keeps it out of the server
+   * render — reading it during render would make the markup depend on a scroll
+   * position the server cannot know.
+   */
+  const openedAway = useRef<boolean | null>(null);
+
   // Reports the server default during hydration, which costs nothing: `webgl`
   // reports false there too, so the canvas has not mounted yet either way.
   const quality = useFieldQuality();
@@ -194,7 +210,15 @@ export default function Hero() {
 
   // Derived, not stored: the veil lifts once the scene is genuinely ready and
   // the counter has run its minimum.
-  const revealed = fontsReady && (!webgl || sceneReady) && minElapsed;
+  //
+  // `!inView` is the deadlock guard, and it is not optional. `sceneReady` is
+  // reported from inside `useFrame`, and the canvas runs `frameloop="never"`
+  // while the hero is off screen — so an off-screen scene never renders a
+  // frame, never reports itself ready, and the veil waits on a condition that
+  // can never come true. That is exactly what a mid-page reload produces: a
+  // black screen that stays black until the visitor scrolls back to the hero.
+  const revealed =
+    fontsReady && (!webgl || sceneReady || !inView) && minElapsed;
 
   // Intro choreography. The first pass (revealed === false) only sets the
   // hidden start state, so nothing can flash between the veil lifting and the
@@ -203,6 +227,29 @@ export default function Hero() {
     () => {
       const targets = gsap.utils.toArray<HTMLElement>("[data-reveal]");
       const motion = motionRef.current;
+
+      // First layout pass, before the first paint. By now the browser has
+      // restored the scroll position it was reloaded at.
+      if (openedAway.current === null) openedAway.current = window.scrollY > 1;
+
+      // Reloaded somewhere else on the page: there is no arrival to stage, so
+      // the hero is simply already finished. Same end state as the reduced
+      // motion branch, and the veil never shows at all — an intro played over a
+      // chapter the visitor is not looking at is not an intro, it is a page
+      // that appears not to have loaded.
+      if (openedAway.current) {
+        motion.reveal = 1;
+        motion.dispersion = 0;
+        writeSignal(1);
+        gsap.set(loaderRef.current, { autoAlpha: 0 });
+        gsap.set(targets, { yPercent: 0, opacity: 1 });
+        return;
+      }
+
+      // The page did open on the hero, so the veil takes over the viewport for
+      // real — it ships anchored to the top of the hero instead, so that a
+      // mid-page reload never paints it over the wrong chapter.
+      gsap.set(loaderRef.current, { position: "fixed" });
 
       if (!revealed) {
         gsap.set(targets, { yPercent: 110, opacity: 0 });
@@ -432,11 +479,11 @@ export default function Hero() {
                   />
                 </div>
               </div>
-              <div className="overflow-hidden">
+              {/* <div className="overflow-hidden">
                 <p data-reveal data-scramble className="text-muted">
                   {heroCopy.hint}
                 </p>
-              </div>
+              </div> */}
               <div className="overflow-hidden">
                 <p data-reveal className="flex items-center gap-2">
                   <span className="size-1.5 rounded-full bg-acid" />

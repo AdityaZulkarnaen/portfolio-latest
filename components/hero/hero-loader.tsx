@@ -18,7 +18,17 @@ export default function HeroLoader({
     <div
       ref={rootRef}
       data-loader
-      className="fixed inset-0 z-50 flex flex-col justify-end bg-void p-5 md:p-8"
+      /* Absolute, not fixed — and it is `hero.tsx` that promotes it to fixed,
+         once it knows the page actually opened here.
+
+         The veil ships in the server HTML and is painted long before any of
+         this hydrates. Fixed, that paint covers the viewport wherever the
+         visitor happens to be, so reloading halfway down the page put a black
+         screen over the chapter they were reading for the whole length of the
+         download. Anchored to the top of the hero instead, it is simply not on
+         screen when the page opens somewhere else, and at the top of the page
+         the two are pixel-identical. */
+      className="absolute inset-x-0 top-0 z-50 flex h-svh flex-col justify-end bg-void p-5 md:p-8"
     >
       <div className="flex items-end justify-between gap-6">
         <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted">

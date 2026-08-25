@@ -52,7 +52,7 @@ export const techCopy = {
      added. Now the count comes from the dataset, so it cannot be edited apart
      from the tunnel it describes. */
   seamLeft: (count: number) =>
-    `${spell(count)} ${count === 1 ? "TOOL" : "TOOLS"} // ONE PIPELINE`,
+    `MANY TOOLS // ONE PIPELINE`,
   seamRight: "TUNNEL OPEN",
   depthLabel: "DEPTH",
   runtimeLabel: "RUNTIME / WEBGL",

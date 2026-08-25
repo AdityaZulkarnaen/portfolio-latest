@@ -157,9 +157,9 @@ export default function PhotoDeck() {
         </button>
       </div>
 
-      <p className="mt-2 shrink-0 font-mono text-[10px] uppercase tracking-[0.18em] text-void/45">
+      {/* <p className="mt-2 shrink-0 font-mono text-[10px] uppercase tracking-[0.18em] text-void/45">
         {aboutCopy.deckHint}
-      </p>
+      </p> */}
     </div>
   );
 }
