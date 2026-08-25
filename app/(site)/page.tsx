@@ -1,4 +1,5 @@
 import About from "@/components/about/about";
+import Contact from "@/components/contact/contact";
 import Experience from "@/components/experience/experience";
 import FeaturedWorks from "@/components/works/featured-works";
 import Hero from "@/components/hero/hero";
@@ -35,6 +36,7 @@ export default async function Home() {
       <TechStack tools={tools} />
       <FeaturedWorks works={featuredWorks} total={works.length} />
       <Experience experiences={experiences} />
+      <Contact />
     </main>
   );
 }

@@ -283,8 +283,15 @@ export default function Experience({ experiences }: ExperienceProps) {
 
               It parks one pitch below the last card, so it seals exactly the
               body it is covering, and it is tall enough to run off the bottom
-              of any screen — that empty acid below the rules is the chapter's
-              own full stop.
+              of any screen — that acid below the rule is the chapter's own full
+              stop.
+
+              It carries the chapter's seam, which used to be a strip of its own
+              under the list. A bar whose only content is the fact that it is a
+              bar reads as the stack having run out of entries; the same bar
+              saying which chapter has just closed, and what closed it, reads as
+              the chapter signing off. It is the same row, in the one place on
+              the page where it is doing something.
 
               The seal survives the exit for free. Cards release in order of
               `top + height`, so the lid — the largest of both — lifts first,
@@ -292,23 +299,25 @@ export default function Experience({ experiences }: ExperienceProps) {
               exactly the height of that card's body. It closes the gap it opens
               at precisely the rate it opens it, so the body is never uncovered.
 
-              `aria-hidden` because there is no fifth experience: this is the
-              mechanism showing, not an entry. */}
+              `aria-hidden` because nothing in here is an entry, the seam
+              included. The chapter mark is already announced by the rail, and
+              "scroll to close the stack" is an instruction about a movement
+              that a screen reader has no stack to close. */}
           <li
             aria-hidden
             style={{
               top: `calc(var(--exp-head) + ${experiences.length} * (var(--exp-row) + 2px))`,
             }}
             className="sticky min-h-[62svh] border-t-2 border-void bg-acid"
-          />
+          >
+            <div
+              className={`flex flex-wrap justify-between gap-4 py-6 text-void/55 md:py-8 ${META_TYPE_BASE}`}
+            >
+              <span>{experienceCopy.seamLeft}</span>
+              <span>{experienceCopy.hint}</span>
+            </div>
+          </li>
         </ul>
-
-        <footer
-          className={`flex flex-wrap justify-between gap-4 border-t-2 border-void py-6 text-void/55 md:py-8 ${META_TYPE_BASE}`}
-        >
-          <span>{experienceCopy.seamLeft}</span>
-          <span>{experienceCopy.hint}</span>
-        </footer>
       </div>
     </section>
   );

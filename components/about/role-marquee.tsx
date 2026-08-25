@@ -71,7 +71,7 @@ export default function RoleMarquee() {
             {aboutCopy.roles.map((role) => (
               <span
                 key={role}
-                className="flex shrink-0 items-center font-blur text-[clamp(2.25rem,min(8.5vw,11vh),9rem)] leading-[0.95] uppercase tracking-[-0.01em] text-void/90"
+                className="flex shrink-0 items-center font-display font-black text-[clamp(2.25rem,min(8.5vw,11vh),9rem)] leading-[0.95] uppercase tracking-[-0.01em] text-void/90"
               >
                 {role}
                 <span className="px-[0.35em] text-void/35">—</span>

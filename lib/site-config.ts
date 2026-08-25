@@ -24,7 +24,7 @@ export const siteConfig = {
     { mark: ".03", label: "Stack", href: "/#tech" },
     { mark: ".04", label: "Works", href: "/#work" },
     { mark: ".05", label: "Experience", href: "/#experience" },
-    // { mark: ".06", label: "Contact", href: "/#contact" },
+    { mark: ".06", label: "Contact", href: "/#contact" },
   ],
 } as const;
 

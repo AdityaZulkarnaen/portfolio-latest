@@ -38,4 +38,15 @@ export const structure: StructureResolver = (S) =>
             .title("Experience")
             .defaultOrdering([{ field: "position", direction: "asc" }]),
         ),
+      S.divider(),
+      // Not content, and kept apart from it: the site writes these, the Studio
+      // only reads them. Newest first, because a mailbox is read from the top.
+      S.listItem()
+        .title("Messages")
+        .schemaType("message")
+        .child(
+          S.documentTypeList("message")
+            .title("Messages")
+            .defaultOrdering([{ field: "sentAt", direction: "desc" }]),
+        ),
     ]);

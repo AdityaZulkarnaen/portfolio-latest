@@ -30,6 +30,7 @@ scroll container in the Studio.
 ## Content
 
 Chapters .03 (Tech stack), .04 (Works) and .05 (Experience) come from Sanity.
+Chapter .06 (Contact) writes *into* it — see **The contact form** below.
 Everything else — the hero, the About slab, and every label and heading — is
 copy in the repo, in the `*-copy.ts` files beside each chapter. That split is
 deliberate: content changes on its own schedule, chrome changes when the design
@@ -104,6 +105,24 @@ In <https://sanity.io/manage> → API → Webhooks:
 Without the secret the route refuses every request — an open revalidation
 endpoint is a free way to make a site rebuild on demand — and edits only appear
 on the hourly fallback.
+
+### The contact form
+
+Chapter .06 stores what it is sent as `message` documents in the same dataset,
+listed under **Messages** in the Studio. No second service and no second inbox:
+they arrive where the content already is. `app/actions/contact.ts` is the only
+file that knows this — swapping to an email provider means rewriting it and
+nothing else.
+
+It needs `SANITY_API_WRITE_TOKEN`, an Editor token from sanity.io/manage > API >
+Tokens. Keep it off anything `NEXT_PUBLIC_`: the read client is in the browser
+bundle by way of `coverSrc()`, and a write token there would be a public one.
+Without the token the form still validates and still refuses politely — and
+logs the reason on the server, where whoever owns the site will find it.
+
+`message` is `readOnly` in the Studio, and deliberately outside the revalidation
+webhook's filter: a message changes no page, and pointing the webhook at it
+would rebuild the site every time somebody said hello.
 
 ### Layout fields
 
