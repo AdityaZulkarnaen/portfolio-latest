@@ -4,7 +4,7 @@ import {
 } from "@sanity/image-url";
 
 import { dataset, studioProjectId } from "./env";
-import type { WorkCover, WorkRatio } from "@/lib/content/types";
+import type { WorkCover, WorkDevice } from "@/lib/content/types";
 
 const builder = createImageUrlBuilder({
   projectId: studioProjectId,
@@ -12,19 +12,24 @@ const builder = createImageUrlBuilder({
 });
 
 /**
- * The pixel box each tile ratio is cropped to.
+ * The pixel box each frame is cropped to.
  *
- * These are the same aspect ratios `work-card.tsx` sets on the frame, written
+ * These are the same aspect ratios `work-card.tsx` sets on the tile, written
  * out in pixels because the crop has to happen on Sanity's side: that is the
  * whole reason the raw image object is carried through the query instead of a
  * finished URL. `fit("crop")` with the editor's hotspot then decides *what*
  * gets cut, rather than the centre of the frame deciding it by default.
+ *
+ * The widths are sized to the largest a tile of that shape is ever drawn, at
+ * 2x. A phone tile is at most a third of a 1376px content column — 432 CSS px,
+ * so 900 — while a desktop tile can be the full row.
  */
-const BOX: Record<WorkRatio | "hero", [number, number]> = {
-  wide: [1600, 1000],
-  square: [1200, 900],
-  tall: [900, 1200],
-  /** The detail page's 16/9 lead image, which is wider than any tile. */
+const BOX: Record<WorkDevice | "hero", [number, number]> = {
+  desktop: [1600, 1000],
+  mobile: [900, 1950],
+  /** The detail page's 16/9 lead, wider than any tile. Desktop projects only —
+      a mobile project stands its phone frame on that stage instead, cropped to
+      `mobile` like its tile. */
   hero: [1920, 1080],
 };
 
@@ -36,8 +41,8 @@ const BOX: Record<WorkRatio | "hero", [number, number]> = {
  * transform each. Worth it: the crop is an editorial decision made in the
  * Studio, and only Sanity's builder knows about it.
  */
-export function coverSrc(cover: WorkCover, ratio: WorkRatio | "hero") {
-  const [width, height] = BOX[ratio];
+export function coverSrc(cover: WorkCover, frame: WorkDevice | "hero") {
+  const [width, height] = BOX[frame];
 
   return builder
     .image(cover.image as SanityImageSource)

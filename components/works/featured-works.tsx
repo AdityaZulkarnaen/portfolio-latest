@@ -153,7 +153,15 @@ export default function FeaturedWorks({ works, total }: FeaturedWorksProps) {
           </div>
         </header>
 
-        <div className="grid grid-cols-12 gap-x-4 gap-y-12 md:gap-x-10 md:gap-y-20">
+        {/* Wrapped, not gridded. A twelve-column grid asks the editor to solve
+            a packing problem every time a project is added — the widths only
+            add up in one sequence, and one wrong number leaves a hole. Here the
+            tiles simply take what they ask for and the line breaks where it
+            runs out, so `position` is the only thing anyone has to decide.
+
+            `items-start` keeps the ragged bottom: a phone tile stands taller
+            than the desktop tile beside it, and nothing stretches to hide it. */}
+        <div className="flex flex-wrap items-start gap-x-4 gap-y-12 md:gap-x-10 md:gap-y-20">
           {works.map((work, i) => (
             <WorkCard key={work.slug} work={work} index={i} peel />
           ))}

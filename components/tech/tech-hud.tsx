@@ -7,6 +7,8 @@ import { techCopy } from "./tech-copy";
 type TechHudProps = {
   barRef: RefObject<HTMLSpanElement | null>;
   valueRef: RefObject<HTMLSpanElement | null>;
+  /** How many marks the tunnel was handed. The seam line states it. */
+  toolCount: number;
 };
 
 /**
@@ -19,7 +21,11 @@ type TechHudProps = {
  * every screen belongs to the fixed nav, which is `mix-blend-difference` and
  * would tangle with anything placed under it.
  */
-export default function TechHud({ barRef, valueRef }: TechHudProps) {
+export default function TechHud({
+  barRef,
+  valueRef,
+  toolCount,
+}: TechHudProps) {
   return (
     <div
       className={`pointer-events-none absolute inset-x-0 bottom-0 z-20 flex flex-col gap-6 p-5 md:flex-row md:items-end md:justify-between md:p-8 ${META_TYPE_BASE} text-ink`}
@@ -29,7 +35,7 @@ export default function TechHud({ barRef, valueRef }: TechHudProps) {
           {techCopy.eyebrow}
         </p>
         <p data-tech-meta className="text-ink/55">
-          {techCopy.seamLeft}
+          {techCopy.seamLeft(toolCount)}
         </p>
       </div>
 

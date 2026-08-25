@@ -6,12 +6,14 @@ import { client } from "@/lib/sanity/client";
 import { isSanityConfigured } from "@/lib/sanity/env";
 import {
   EXPERIENCE_TAG,
+  TOOL_TAG,
   WORK_TAG,
   experiencesQuery,
+  toolsQuery,
   worksQuery,
 } from "@/lib/sanity/queries";
-import { seedExperiences, seedWorks } from "./seed";
-import type { Experience, Work } from "./types";
+import { seedExperiences, seedTools, seedWorks } from "./seed";
+import type { Experience, Tool, Work } from "./types";
 
 /**
  * The one door between the site and its content.
@@ -62,6 +64,21 @@ export const getExperiences = cache(async (): Promise<Experience[]> => {
     experiencesQuery,
     {},
     { next: { revalidate: REVALIDATE_SECONDS, tags: [EXPERIENCE_TAG] } },
+  );
+});
+
+/**
+ * Chapter .03's tunnel. An empty result is respected here as everywhere else:
+ * with no tools in the dataset the chapter still runs — the tag opens on an
+ * empty tunnel rather than on the twenty marks in the seed.
+ */
+export const getTools = cache(async (): Promise<Tool[]> => {
+  if (!isSanityConfigured) return seedTools;
+
+  return client.fetch<Tool[]>(
+    toolsQuery,
+    {},
+    { next: { revalidate: REVALIDATE_SECONDS, tags: [TOOL_TAG] } },
   );
 });
 

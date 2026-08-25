@@ -165,67 +165,147 @@ html.lenis body {
    the lower half peeling up off the board *toward the viewer*, lying flat once
    the scroll brings them level with the middle of the frame.
 
-   The whole effect is one number. `featured-works.tsx` writes `--peel` (1 =
-   curled, 0 = flat) straight to the element from the scroll, and every
-   property below is derived from it here — so the JS never has to know what
-   the curl looks like, and the look can be retuned without touching a line of
-   it.
+   The whole effect is still one number. `featured-works.tsx` writes `--peel`
+   (1 = curled, 0 = flat) straight to the stage from the scroll, and everything
+   below is derived from it here — so the JS never has to know what the curl
+   looks like, and the look can be retuned without touching a line of it.
+
+   What changed is that the note is no longer one plane. A rigid rectangle
+   rotating about its top edge reads as a hinged board, because that is exactly
+   what it is; paper bends. `work-card.tsx` builds the tile as a chain of quads
+   hinged along their top edges, each nested inside the one that carries it, so
+   the angles compound into a curve. The head stays flat where the note is
+   stuck and the bands below it roll away.
+
+   Nothing on `.peel-stage`, `.peel-head` or `.peel-band` may set `overflow`,
+   `opacity`, `filter`, `clip-path`, `mask` or `mix-blend-mode`. Every one of
+   them is a grouping property, and a grouping property computes
+   `transform-style` back to `flat` — which would collapse the whole chain into
+   a single plane and silently undo all of this. That is why the dimming below
+   is a black overlay rather than an `opacity`, and why the clipping lives on
+   `.peel-face`, which is a leaf.
 
    `rotateX` is POSITIVE, and that is the load-bearing detail. CSS puts +Y down
    and +Z toward the viewer, so a positive rotation about X swings the bottom
    edge out of the screen; a negative one folds it in behind the page, which
-   reads as the tile sinking into the board rather than lifting off it. With
-   `transform-origin` on the top edge, positive is the direction that looks
-   like adhesion.
+   reads as the tile sinking into the board rather than lifting off it.
 
-   The remaining numbers are a solved fit, not taste. Perspective makes the
-   near edge grow, and the grown corners have to stay inside the column gutter
-   or two tiles sharing a row visibly collide at full curl — measured, an
-   earlier 15deg/1.1deg pass overhung by 27-39px per side against a 12px
-   budget. At 900px perspective, 16deg, 0.4deg of tilt and a 10% shrink, the
-   worst case overhangs 15.7px into a 20px budget (`md:gap-x-10`) and 7.4px
-   into the 20px above the caption (`mt-5`). Change any one of them and the
-   others stop adding up.
+   The perspective, the shrink and the band angles in `work-card.tsx` are one
+   solved fit, and `node scripts/verify-peel.mjs` is the solver. Perspective
+   magnifies whatever leans toward the viewer, so the bottom of the curl reaches
+   sideways past the tile's own box; two tiles sharing a line have half of
+   `md:gap-x-10` to spend on that before they visibly collide. Change any one of
+   these numbers, or the widths a tile may take, and re-run it.
 
-   There is deliberately no `translateZ`: it spends overflow budget without
-   adding any trapezoid, and the trapezoid is the whole cue.
-
-   Default 0: before JS runs, and with JS off entirely, the grid is a clean
-   flat set of rectangles rather than a pile of half-peeled tiles. */
-[data-peel] {
+   Default 0: before JS runs, and with JS off entirely, the bands lie exactly
+   coplanar and reassemble into a plain rectangle. */
+.peel-stage {
   --peel: 0;
   --peel-tilt: 0deg;
+  perspective: 2200px;
+  /* At the glued edge, not the middle: the vanishing point belongs where the
+     note is held, so the curl splays away from it. */
+  perspective-origin: 50% 0;
+  transform-style: preserve-3d;
   transform-origin: 50% 0%;
-  transform: perspective(900px) translateY(calc(var(--peel) * 0.4rem))
-    rotateX(calc(var(--peel) * 16deg))
+  transform: translateY(calc(var(--peel) * 0.4rem))
     rotateZ(calc(var(--peel) * var(--peel-tilt)))
     scale(calc(1 - var(--peel) * 0.1));
-  opacity: calc(1 - var(--peel) * 0.18);
   box-shadow: 0 calc(var(--peel) * 2.6rem) calc(var(--peel) * 4rem) -1.5rem
     rgba(0, 0, 0, calc(var(--peel) * 0.95));
   will-change: transform;
 }
 
-/* The lifted edge catching the light: it is now angled toward the viewer, so
-   it takes more of it than the pinned top does. Clipped by the tile's own
-   `overflow-hidden`, and sitting below the acid chip, which claims z-10. */
-[data-peel]::after {
+.peel-head,
+.peel-band {
+  position: absolute;
+  left: 0;
+  right: 0;
+  transform-style: preserve-3d;
+  transform-origin: 50% 0%;
+}
+
+/* Height comes from `HEAD` in `work-card.tsx`, inline, because the plate
+   offsets in every band are derived from the same number — split across two
+   files they would drift apart and the slices would stop lining up. */
+.peel-head {
+  top: 0;
+}
+
+/* Each band hangs off the bottom edge of the one above it, so `top: 100%` and
+   the rotation compose down the chain without anyone computing a position. */
+.peel-band {
+  top: 100%;
+  transform: rotateX(calc(var(--peel) * var(--deg)));
+}
+
+/* The leaf, and the only element here allowed to clip. Its `overflow` flattens
+   it, which is harmless: the plate inside is flat anyway, and the next band is
+   its sibling rather than its child. */
+.peel-face {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  overflow: hidden;
+  background: #101014;
+  /* The frame the tile used to get from one `ring-1`, drawn per slice now.
+     Sides on every band; the top and bottom edges only where the note actually
+     has one. */
+  box-shadow:
+    inset 1px 0 0 rgb(242 242 240 / 0.08),
+    inset -1px 0 0 rgb(242 242 240 / 0.08);
+}
+
+.peel-head > .peel-face {
+  box-shadow:
+    inset 1px 0 0 rgb(242 242 240 / 0.08),
+    inset -1px 0 0 rgb(242 242 240 / 0.08),
+    inset 0 1px 0 rgb(242 242 240 / 0.08);
+}
+
+.peel-band[data-tail] > .peel-face {
+  box-shadow:
+    inset 1px 0 0 rgb(242 242 240 / 0.08),
+    inset -1px 0 0 rgb(242 242 240 / 0.08),
+    inset 0 -1px 0 rgb(242 242 240 / 0.08);
+}
+
+.peel-plate {
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+
+/* The light on the curve.
+   `--lit-a` and `--lit-b` are this band's two hinges, so the sheen runs
+   continuously across the joins instead of stepping band by band. The flat
+   background colour is the dimming that used to be `opacity` on the tile —
+   which cannot be used here, being a grouping property.
+
+   The head carries no mark of its own. It did once: a shade cast back onto the
+   part still stuck down, where the note lifts off the board. It was true to the
+   geometry and wrong on the page — on a bright cover it reads as a smudge
+   across the artwork rather than as depth, and the flat half of the tile is
+   exactly the half that has to stay legible while the rest curls away. The
+   hinge is stated by the light on the curve below it instead. */
+.peel-face::after {
   content: "";
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(
-    to top,
-    rgba(242, 242, 240, 0.17),
-    transparent 48%
+  background-color: rgb(0 0 0 / calc(var(--peel) * 0.16));
+  background-image: linear-gradient(
+    to bottom,
+    rgb(242 242 240 / calc(var(--peel) * var(--lit-a) * 0.62)),
+    rgb(242 242 240 / calc(var(--peel) * var(--lit-b) * 0.62))
   );
-  opacity: var(--peel);
 }
 
 /* Belt and braces with the JS branch: this one also holds for the frames
    before `useGSAP` has run. */
 @media (prefers-reduced-motion: reduce) {
-  [data-peel] {
+  .peel-stage {
     --peel: 0 !important;
   }
 }

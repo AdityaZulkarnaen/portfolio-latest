@@ -12,7 +12,30 @@ import type { PortableTextBlock } from "@portabletext/types";
 
 export type { PortableTextBlock };
 
-export type WorkRatio = "wide" | "square" | "tall";
+/**
+ * How much of a row a desktop tile asks for. Ignored on a mobile project,
+ * whose tile is sized by height instead.
+ *
+ * `row` is not a fraction: its basis is only wide enough to stop two of them
+ * sharing a line, and it then grows into whatever that line has left — the rest
+ * of the width beside a phone tile, or all of it when alone. That is what saves
+ * anyone from working out what fraction a phone leaves behind.
+ *
+ * `half` is exactly what it says and does not grow. Beside a phone it leaves
+ * the remainder of the line empty rather than swallowing it, because a width
+ * that quietly comes out different from the one chosen reads as a broken
+ * dropdown.
+ */
+export type WorkWidth = "row" | "half";
+
+/**
+ * What kind of screen the project lives on — and therefore the shape of its
+ * tile, which is the whole reason this field exists rather than a free choice
+ * of aspect ratio. A phone app shown in a 16/10 frame is a phone app with two
+ * columns of empty room beside it; the grid says what a project *is* by the
+ * shape of the hole it makes.
+ */
+export type WorkDevice = "desktop" | "mobile";
 
 /** A Sanity image field, as it comes back from GROQ without dereferencing. */
 export type SanityImageValue = {
@@ -50,11 +73,9 @@ export type Work = {
   stack: string[];
   /** Null renders the calibration placeholder rather than a broken image. */
   cover: WorkCover | null;
-  /** Columns out of 12, from `md` up. */
-  span: 4 | 6 | 8 | 12;
-  /** Columns out of 12 below `md`, where the grid is still 12 wide. */
-  spanSm: 6 | 12;
-  ratio: WorkRatio;
+  device: WorkDevice;
+  /** Desktop only. A phone tile has one size, set by height. */
+  width: WorkWidth;
   /** Chapter .04 shows only these. The index at /work shows everything. */
   featured: boolean;
   /** Optional outbound links, rendered on the detail page when present. */
@@ -73,4 +94,25 @@ export type Experience = {
   summary: string;
   /** Free text, not dates — a role may run "2024 – Present". */
   period: string;
+};
+
+/**
+ * One mark in Chapter .03's tunnel.
+ *
+ * Deliberately not an image field. Every other picture on the site is laid out
+ * by `next/image` from a raw Sanity value, but this one is rasterised into a
+ * sprite sheet by `buildLogoAtlas` — it goes to a bare `new Image()`, so the
+ * only useful shape is a finished URL. That is also what lets the seed point at
+ * `/logo/*.png` in `public/` and the Studio point at the asset CDN without the
+ * tunnel knowing which it got.
+ */
+export type Tool = {
+  /** Full name. Screen-reader text, and the visible list without WebGL. */
+  name: string;
+  /** Initials for the calibration frame, when there is no artwork or it fails. */
+  label: string;
+  /** Null draws the calibration frame instead. */
+  src: string | null;
+  /** Repaint a black-on-transparent mark in bone, keeping its alpha. */
+  reverse: boolean;
 };

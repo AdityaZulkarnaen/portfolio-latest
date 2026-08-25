@@ -5,6 +5,7 @@
  *
  *     npm run sanity:seed
  *     npm run sanity:seed -- --only work  # just the projects
+ *     npm run sanity:seed -- --only tool  # just the tech stack
  *     npm run sanity:seed -- --dry-run    # print the NDJSON, import nothing
  *
  * It reads the same `lib/content/seed.json` the site falls back to, writes an
@@ -26,20 +27,27 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const dryRun = process.argv.includes("--dry-run");
 
 /**
- * Which document types to seed. Defaults to both.
+ * Which document types to seed. Defaults to all three.
  *
  * The reason this exists: `--replace` is per document id, so seeding a type you
  * have already written by hand is harmless to *your* documents but leaves four
  * placeholders sitting beside them to be deleted one at a time. Once a chapter
- * has real content in it, seed the other one on its own.
+ * has real content in it, seed the others on their own.
  */
 const onlyFlag = process.argv.indexOf("--only");
 const only = onlyFlag === -1 ? null : process.argv[onlyFlag + 1];
 
-if (only && !["work", "experience"].includes(only)) {
-  console.error(`--only takes "work" or "experience", got: ${only ?? "nothing"}`);
+const TYPES = ["work", "experience", "tool"];
+
+if (only && !TYPES.includes(only)) {
+  console.error(
+    `--only takes ${TYPES.map((t) => `"${t}"`).join(", ")}, got: ${only ?? "nothing"}`,
+  );
   process.exit(1);
 }
+
+/** Whether this run should emit documents of `type`. */
+const wants = (type) => !only || only === type;
 
 /**
  * Node does not read `.env.local` on its own, and this script runs outside
@@ -79,6 +87,32 @@ function toBlocks(paragraphs) {
 
 const slugField = (current) => ({ _type: "slug", current });
 
+/**
+ * A logo file in `public/` as an image field the importer will upload.
+ *
+ * `_sanityAsset` is the CLI's own convention: `sanity dataset import` resolves
+ * the reference, uploads the file, and swaps in a real asset reference before
+ * the document lands. Paths are relative to the NDJSON file, which is written
+ * to the repo root — hence the leading `.`. Nothing else in this script
+ * uploads anything, and this is the only reason the tools can be seeded at all:
+ * a bare `/logo/next.png` string in a Sanity document would point at a path
+ * that only exists inside this app.
+ */
+const imageAsset = (publicPath) => {
+  // Checked here rather than left to the importer: it fails the whole import on
+  // a missing file, and "ENOENT" partway through twenty uploads says much less
+  // than the name of the tool that is missing its artwork.
+  if (!existsSync(resolve(root, "public", publicPath.replace(/^\//, "")))) {
+    console.error(`No such logo: public${publicPath}`);
+    process.exit(1);
+  }
+
+  return {
+    _type: "image",
+    _sanityAsset: `image@file://./public${publicPath}`,
+  };
+};
+
 loadEnvLocal();
 
 const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID;
@@ -98,7 +132,7 @@ const seed = JSON.parse(
 );
 
 const documents = [
-  ...(only === "experience" ? [] : seed.works).map((work) => ({
+  ...(wants("work") ? seed.works : []).map((work) => ({
     _id: `work.${work.slug}`,
     _type: "work",
     name: work.name,
@@ -109,13 +143,12 @@ const documents = [
     summary: work.summary,
     body: toBlocks(work.bodyParagraphs),
     stack: work.stack,
-    span: work.span,
-    spanSm: work.spanSm,
-    ratio: work.ratio,
+    device: work.device,
+    width: work.width,
     featured: work.featured,
     position: work.position,
   })),
-  ...(only === "work" ? [] : seed.experiences).map((item) => ({
+  ...(wants("experience") ? seed.experiences : []).map((item) => ({
     _id: `experience.${item.slug}`,
     _type: "experience",
     role: item.role,
@@ -124,6 +157,17 @@ const documents = [
     summary: item.summary,
     period: item.period,
     position: item.position,
+  })),
+  // Ids from the label rather than a slug: a tool has no slug field, and the
+  // label is the one short, unique, stable string it does have.
+  ...(wants("tool") ? seed.tools : []).map((tool) => ({
+    _id: `tool.${tool.label.toLowerCase()}`,
+    _type: "tool",
+    name: tool.name,
+    label: tool.label,
+    logo: imageAsset(tool.src),
+    reverse: tool.reverse,
+    position: tool.position,
   })),
 ];
 

@@ -12,11 +12,15 @@
         "Placeholder body copy. Replace with what the project actually was, what made it hard, and what you decided — a case study is a record of judgement, not a feature list.",
         "Two or three paragraphs is usually the right length. The detail page renders one paragraph per block in the Portable Text editor."
       ],
-      "stack": ["Next.js", "TypeScript", "Laravel", "Supabase"],
-      "span": 8,
-      "spanSm": 12,
-      "ratio": "wide",
-      "featured": true
+      "stack": [
+        "Next.js",
+        "TypeScript",
+        "Laravel",
+        "Supabase"
+      ],
+      "featured": true,
+      "device": "desktop",
+      "width": "row"
     },
     {
       "position": 2,
@@ -29,11 +33,14 @@
       "bodyParagraphs": [
         "Placeholder body copy. Replace with the real account of the project."
       ],
-      "stack": ["Flutter", "Firebase", "Kotlin"],
-      "span": 4,
-      "spanSm": 12,
-      "ratio": "tall",
-      "featured": true
+      "stack": [
+        "Flutter",
+        "Firebase",
+        "Kotlin"
+      ],
+      "featured": true,
+      "device": "mobile",
+      "width": "half"
     },
     {
       "position": 3,
@@ -46,11 +53,15 @@
       "bodyParagraphs": [
         "Placeholder body copy. Replace with the real account of the project."
       ],
-      "stack": ["React", "TypeScript", "Python", "Docker"],
-      "span": 6,
-      "spanSm": 12,
-      "ratio": "square",
-      "featured": true
+      "stack": [
+        "React",
+        "TypeScript",
+        "Python",
+        "Docker"
+      ],
+      "featured": true,
+      "device": "desktop",
+      "width": "row"
     },
     {
       "position": 4,
@@ -63,11 +74,14 @@
       "bodyParagraphs": [
         "Placeholder body copy. Replace with the real account of the project."
       ],
-      "stack": ["PyTorch", "TensorFlow", "Python"],
-      "span": 6,
-      "spanSm": 12,
-      "ratio": "square",
-      "featured": true
+      "stack": [
+        "PyTorch",
+        "TensorFlow",
+        "Python"
+      ],
+      "featured": true,
+      "device": "desktop",
+      "width": "half"
     },
     {
       "position": 5,
@@ -80,11 +94,14 @@
       "bodyParagraphs": [
         "Placeholder body copy. Replace with the real account of the project."
       ],
-      "stack": ["Solidity", "Next.js", "TypeScript"],
-      "span": 6,
-      "spanSm": 6,
-      "ratio": "square",
-      "featured": true
+      "stack": [
+        "Solidity",
+        "Next.js",
+        "TypeScript"
+      ],
+      "featured": true,
+      "device": "desktop",
+      "width": "half"
     },
     {
       "position": 6,
@@ -97,11 +114,14 @@
       "bodyParagraphs": [
         "Placeholder body copy. Replace with the real account of the project."
       ],
-      "stack": ["Figma", "React", "Tailwind CSS"],
-      "span": 6,
-      "spanSm": 6,
-      "ratio": "square",
-      "featured": true
+      "stack": [
+        "Figma",
+        "React",
+        "Tailwind CSS"
+      ],
+      "featured": true,
+      "device": "desktop",
+      "width": "row"
     },
     {
       "position": 7,
@@ -114,11 +134,13 @@
       "bodyParagraphs": [
         "Placeholder body copy. Replace with the real account of the project."
       ],
-      "stack": ["JavaScript", "Figma"],
-      "span": 6,
-      "spanSm": 6,
-      "ratio": "square",
-      "featured": false
+      "stack": [
+        "JavaScript",
+        "Figma"
+      ],
+      "featured": false,
+      "device": "desktop",
+      "width": "half"
     },
     {
       "position": 8,
@@ -131,11 +153,14 @@
       "bodyParagraphs": [
         "Placeholder body copy. Replace with the real account of the project."
       ],
-      "stack": ["Java", "Docker", "PHP"],
-      "span": 6,
-      "spanSm": 6,
-      "ratio": "square",
-      "featured": false
+      "stack": [
+        "Java",
+        "Docker",
+        "PHP"
+      ],
+      "featured": false,
+      "device": "desktop",
+      "width": "half"
     }
   ],
   "experiences": [
@@ -170,6 +195,148 @@
       "org": "Google Developer Groups on Campus",
       "summary": "Representing GDGoC UGM in the Google Solution Challenge, I serve as a Front-End Developer tasked with engineering an intuitive and performance-optimized application. My role involves transforming complex social challenges into user-centric digital experiences, leveraging modern web technologies to build a solution that is not only functional but also scalable for real-world implementation.",
       "period": "December 2025 – July 2026"
+    }
+  ],
+  "tools": [
+    {
+      "position": 1,
+      "name": "React",
+      "label": "REACT",
+      "src": "/logo/React-icon.svg.png",
+      "reverse": false
+    },
+    {
+      "position": 2,
+      "name": "Next.js",
+      "label": "NEXT",
+      "src": "/logo/next.png",
+      "reverse": true
+    },
+    {
+      "position": 3,
+      "name": "Svelte",
+      "label": "SVELTE",
+      "src": "/logo/Svelte.png",
+      "reverse": false
+    },
+    {
+      "position": 4,
+      "name": "Tailwind CSS",
+      "label": "TW",
+      "src": "/logo/Tailwind_CSS_Logo.svg.png",
+      "reverse": false
+    },
+    {
+      "position": 5,
+      "name": "JavaScript",
+      "label": "JS",
+      "src": "/logo/JavaScript-logo.png",
+      "reverse": false
+    },
+    {
+      "position": 6,
+      "name": "PHP",
+      "label": "PHP",
+      "src": "/logo/PHP-logo.svg.png",
+      "reverse": false
+    },
+    {
+      "position": 7,
+      "name": "Laravel",
+      "label": "LARAVEL",
+      "src": "/logo/laravel.png",
+      "reverse": false
+    },
+    {
+      "position": 8,
+      "name": "Python",
+      "label": "PY",
+      "src": "/logo/Python-logo-notext.svg.png",
+      "reverse": false
+    },
+    {
+      "position": 9,
+      "name": "Java",
+      "label": "JAVA",
+      "src": "/logo/java.png",
+      "reverse": false
+    },
+    {
+      "position": 10,
+      "name": "Kotlin",
+      "label": "KOTLIN",
+      "src": "/logo/Kotlin_Icon.png",
+      "reverse": false
+    },
+    {
+      "position": 11,
+      "name": "Flutter",
+      "label": "FLUTTER",
+      "src": "/logo/flutter.png",
+      "reverse": false
+    },
+    {
+      "position": 12,
+      "name": "Expo",
+      "label": "EXPO",
+      "src": "/logo/expo.svg",
+      "reverse": true
+    },
+    {
+      "position": 13,
+      "name": "Supabase",
+      "label": "SUPA",
+      "src": "/logo/supabase.svg",
+      "reverse": false
+    },
+    {
+      "position": 14,
+      "name": "Firebase",
+      "label": "FIREBASE",
+      "src": "/logo/firebase.svg",
+      "reverse": false
+    },
+    {
+      "position": 15,
+      "name": "PyTorch",
+      "label": "TORCH",
+      "src": "/logo/PyTorch.png",
+      "reverse": false
+    },
+    {
+      "position": 16,
+      "name": "TensorFlow",
+      "label": "TF",
+      "src": "/logo/TensorFlow.png",
+      "reverse": false
+    },
+    {
+      "position": 17,
+      "name": "Solidity",
+      "label": "SOL",
+      "src": "/logo/solidity_logo.svg",
+      "reverse": true
+    },
+    {
+      "position": 18,
+      "name": "Docker",
+      "label": "DOCKER",
+      "src": "/logo/docker-mark-ocean-blue.png",
+      "reverse": false
+    },
+    {
+      "position": 19,
+      "name": "GitHub",
+      "label": "GIT",
+      "src": "/logo/github.png",
+      "reverse": true
+    },
+    {
+      "position": 20,
+      "name": "Figma",
+      "label": "FIGMA",
+      "src": "/logo/figma.webp",
+      "reverse": false
     }
   ]
 }

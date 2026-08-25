@@ -6,22 +6,25 @@ import TechStack from "@/components/tech/tech-stack";
 import {
   getExperiences,
   getFeaturedWorks,
+  getTools,
   getWorks,
 } from "@/lib/content/source";
 
 /**
  * The only place on the homepage that touches Sanity.
  *
- * Chapters .04 and .05 are client components — one measures rects every frame,
- * the other observes its own heading — so neither can read content itself. This
- * page is the server boundary that does, and it fetches all of it in parallel:
- * `getFeaturedWorks` shares `getWorks`' round trip through React's per-request
- * cache, so the three calls below are two requests, not three.
+ * Chapters .03, .04 and .05 are client components — one rasterises a sprite
+ * sheet, one measures rects every frame, the last observes its own heading — so
+ * none of them can read content itself. This page is the server boundary that
+ * does, and it fetches all of it in parallel: `getFeaturedWorks` shares
+ * `getWorks`' round trip through React's per-request cache, so the four calls
+ * below are three requests, not four.
  */
 export default async function Home() {
-  const [works, featuredWorks, experiences] = await Promise.all([
+  const [works, featuredWorks, tools, experiences] = await Promise.all([
     getWorks(),
     getFeaturedWorks(),
+    getTools(),
     getExperiences(),
   ]);
 
@@ -29,7 +32,7 @@ export default async function Home() {
     <main className="w-full">
       <Hero />
       <About />
-      <TechStack />
+      <TechStack tools={tools} />
       <FeaturedWorks works={featuredWorks} total={works.length} />
       <Experience experiences={experiences} />
     </main>

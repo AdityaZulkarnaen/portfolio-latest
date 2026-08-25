@@ -16,7 +16,7 @@
  */
 
 import raw from "./seed.json";
-import type { Experience, PortableTextBlock, Work } from "./types";
+import type { Experience, PortableTextBlock, Tool, Work } from "./types";
 
 /**
  * Plain paragraphs to Portable Text.
@@ -51,9 +51,8 @@ export const seedWorks: Work[] = raw.works.map((work) => ({
   // No asset to point at before the dataset exists, so every seeded tile shows
   // the calibration frame — the same bargain the old empty-string cover struck.
   cover: null,
-  span: work.span as Work["span"],
-  spanSm: work.spanSm as Work["spanSm"],
-  ratio: work.ratio as Work["ratio"],
+  device: work.device as Work["device"],
+  width: work.width as Work["width"],
   featured: work.featured,
 }));
 
@@ -63,4 +62,21 @@ export const seedExperiences: Experience[] = raw.experiences.map((item) => ({
   org: item.org,
   summary: item.summary,
   period: item.period,
+}));
+
+/**
+ * The tunnel's marks, pointing at the artwork in `public/logo`.
+ *
+ * Unlike the two above, this is not placeholder text — it is the real stack,
+ * and the files it points at are the real logos. It stays the fallback anyway,
+ * because `src` is just a URL: once the tools live in Sanity the same field
+ * carries a CDN URL instead, and `tech-stack.tsx` cannot tell the difference.
+ * `npm run sanity:seed` uploads these files as assets rather than importing the
+ * paths, so a seeded dataset serves its own copies.
+ */
+export const seedTools: Tool[] = raw.tools.map((tool) => ({
+  name: tool.name,
+  label: tool.label,
+  src: tool.src,
+  reverse: tool.reverse,
 }));

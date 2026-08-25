@@ -8,7 +8,8 @@ import { useFinePointer, useReducedMotion } from "@/lib/use-media-query";
 import { useWebGLSupport } from "@/lib/use-webgl-support";
 import { META_TYPE_BASE } from "@/lib/site-config";
 import TechCanvas from "./tech-canvas";
-import { techCopy } from "./tech-copy";
+import type { Tool } from "@/lib/content/types";
+import { techCopy, toAtlasTile } from "./tech-copy";
 import TechHud from "./tech-hud";
 import {
   BEAT,
@@ -21,6 +22,11 @@ import {
 /** Slabs the chapter reaches up with, matching Chapter .02's takeover. */
 const SLATS = 3;
 
+type TechStackProps = {
+  /** The marks in the tunnel, from Sanity. Ordered; the tunnel deals at random. */
+  tools: Tool[];
+};
+
 /**
  * Chapter .03 — the tag that opens, the tunnel behind it, and the tag closing
  * again.
@@ -31,8 +37,12 @@ const SLATS = 3;
  * off exactly one scrubbed ScrollTrigger writing one mutable object, which is
  * why the tag, the tunnel and the heading cannot drift apart — there is only
  * ever one clock.
+ *
+ * `tools` arrives as a prop rather than being read here: this is a client
+ * component, and `lib/content/source.ts` is `server-only`. The page fetches it
+ * alongside the other chapters' content.
  */
-export default function TechStack() {
+export default function TechStack({ tools }: TechStackProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
   const headRef = useRef<HTMLHeadingElement>(null);
@@ -58,7 +68,9 @@ export default function TechStack() {
   // browser resolved — Canvas 2D silently falls back to a system face
   // otherwise, and the labels come out in the wrong voice.
   useEffect(() => {
-    if (!webgl) return;
+    // No tools means no sheet: `buildLogoAtlas` would size a canvas to zero
+    // cells, and the tunnel below already renders nothing without an atlas.
+    if (!webgl || tools.length === 0) return;
     let cancelled = false;
 
     (async () => {
@@ -71,7 +83,7 @@ export default function TechStack() {
       if (cancelled) return;
 
       const next = await buildLogoAtlas(
-        techCopy.stack,
+        tools.map(toAtlasTile),
         fontFamily,
         resolveAtlasTile(),
       );
@@ -86,7 +98,7 @@ export default function TechStack() {
     return () => {
       cancelled = true;
     };
-  }, [webgl]);
+  }, [webgl, tools]);
 
   useEffect(() => {
     return () => {
@@ -278,7 +290,7 @@ export default function TechStack() {
           aria-hidden
           className="pointer-events-none absolute left-0 top-0 select-none font-mono text-[10px] font-bold opacity-0"
         >
-          {techCopy.stack[0].label}
+          {techCopy.probeLabel}
         </span>
 
         {/* Cheap stand-in for a bloom pass at the vanishing point. */}
@@ -337,13 +349,17 @@ export default function TechStack() {
                 : `flex flex-wrap justify-center gap-x-6 gap-y-2 ${META_TYPE_BASE} text-muted`
             }
           >
-            {techCopy.stack.map((tile) => (
-              <li key={tile.name}>{tile.name}</li>
+            {tools.map((tool) => (
+              <li key={tool.name}>{tool.name}</li>
             ))}
           </ul>
         </div>
 
-        <TechHud barRef={depthBarRef} valueRef={depthValueRef} />
+        <TechHud
+          barRef={depthBarRef}
+          valueRef={depthValueRef}
+          toolCount={tools.length}
+        />
       </section>
 
       {/* Chapter .04 joins on here. The tag has closed and the frame is sealed

@@ -50,7 +50,8 @@ export default async function WorkIndexPage() {
           </Link>
         </header>
 
-        <div className="grid grid-cols-12 gap-x-4 gap-y-12 md:gap-x-10 md:gap-y-20">
+        {/* Same wrapped row as Chapter .04 — see `featured-works.tsx`. */}
+        <div className="flex flex-wrap items-start gap-x-4 gap-y-12 md:gap-x-10 md:gap-y-20">
           {works.map((work, i) => (
             <WorkCard key={work.slug} work={work} index={i} />
           ))}

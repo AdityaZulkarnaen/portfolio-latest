@@ -2,11 +2,12 @@ import { defineQuery } from "next-sanity";
 
 /**
  * Cache tags. The webhook at `app/api/revalidate/route.ts` calls
- * `revalidateTag` with the `_type` of whatever document changed, so these two
+ * `revalidateTag` with the `_type` of whatever document changed, so these
  * strings have to stay identical to the schema type names.
  */
 export const WORK_TAG = "work";
 export const EXPERIENCE_TAG = "experience";
+export const TOOL_TAG = "tool";
 
 /**
  * The cover is projected rather than dereferenced to a URL.
@@ -28,10 +29,18 @@ const COVER = /* groq */ `
 `;
 
 /**
- * Ordered by `position`, not by year. Chapter .04's grid is a composition —
- * `span`, `spanSm` and `ratio` only tile correctly in one order — so the
- * sequence is an editorial field the Studio exposes, not a derived sort. `year`
- * breaks ties so a forgotten `position` degrades to something sensible.
+ * Ordered by `position`, not by year. Chapter .04's grid is a wrapped row, so
+ * `position` decides which tiles end up sharing a line — an editorial field the
+ * Studio exposes, not a derived sort. `year` breaks ties so a forgotten
+ * `position` degrades to something sensible.
+ *
+ * `device` and `width` are read through fallbacks for documents written before
+ * the tile stopped being a free choice of rectangle. `ratio` was one of
+ * wide/square/tall and `span` was twelfths; the mappings are the honest ones —
+ * `tall` was only ever used for phone screenshots, and anything that used to
+ * claim two thirds of the grid or more was asking for the rest of its row.
+ * Both only fire on documents that still carry the old fields; delete them once
+ * the last of those has been opened and saved.
  */
 export const worksQuery = defineQuery(`
   *[_type == "work" && defined(slug.current)] | order(position asc, year desc) {
@@ -43,9 +52,8 @@ export const worksQuery = defineQuery(`
     summary,
     body,
     "stack": coalesce(stack, []),
-    span,
-    spanSm,
-    ratio,
+    "device": coalesce(device, select(ratio == "tall" => "mobile", "desktop")),
+    "width": coalesce(width, select(span >= 8 => "row", "half")),
     "featured": coalesce(featured, false),
     live,
     repo,
@@ -66,5 +74,43 @@ export const experiencesQuery = defineQuery(`
     org,
     summary,
     period
+  }
+`);
+
+/**
+ * Chapter .03's marks, rasterised into one sprite sheet on the client.
+ *
+ * `src` is finished here rather than in `lib/sanity/image.ts` because the
+ * tunnel is not laying out an `<Image>`: `buildLogoAtlas` hands the URL to a
+ * bare `new Image()` and draws it into a canvas, so what it needs is one string
+ * that decodes, not a hotspot-aware builder. The transform params are the same
+ * ones the URL builder would emit.
+ *
+ * The `select` has three arms and each is load-bearing:
+ *
+ *  - SVG is passed through untouched. Sanity's image pipeline does not
+ *    rasterise SVGs; asking it for `?fm=png` yields the original file anyway,
+ *    so the parameters would be a lie in the URL.
+ *  - Everything else is capped at 512px and forced to PNG. A cell is at most
+ *    384px, and `fm=png` rather than `auto=format` because alpha is not
+ *    optional here — a mark composited onto the tunnel over a white box is
+ *    worse than a missing mark.
+ *  - No logo at all yields null, which `tech-stack.tsx` reads as "draw the
+ *    calibration frame with `label` in it".
+ *
+ * `order(position asc)` does not decide what appears where — the tunnel deals
+ * its cells at random — but it does fix the no-WebGL list and the screen
+ * reader's reading order.
+ */
+export const toolsQuery = defineQuery(`
+  *[_type == "tool" && defined(name)] | order(position asc, name asc) {
+    name,
+    label,
+    "src": select(
+      logo.asset->extension == "svg" => logo.asset->url,
+      defined(logo.asset) => logo.asset->url + "?w=512&fm=png",
+      null
+    ),
+    "reverse": coalesce(reverse, false)
   }
 `);

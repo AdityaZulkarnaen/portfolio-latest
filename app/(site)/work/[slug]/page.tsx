@@ -49,6 +49,7 @@ export default async function WorkDetailPage({
   if (index === -1) notFound();
 
   const work = works[index];
+  const isMobileApp = work.device === "mobile";
   // Wraps, so the last project leads back to the first rather than dead-ending.
   const next = works[(index + 1) % works.length];
 
@@ -85,23 +86,48 @@ export default async function WorkDetailPage({
           </p>
         </header>
 
-        <figure className="relative mt-12 aspect-[16/9] w-full overflow-hidden ring-1 ring-ink/[0.08] md:mt-16">
-          {work.cover ? (
-            <Image
-              // A wider crop than any tile uses, taken from the same hotspot.
-              src={coverSrc(work.cover, "hero")}
-              alt={work.cover.alt}
-              fill
-              sizes="(min-width: 1024px) 90vw, 100vw"
-              priority
-              {...(work.cover.lqip
-                ? ({ placeholder: "blur", blurDataURL: work.cover.lqip } as const)
-                : {})}
-              className="object-cover"
-            />
-          ) : (
-            <CoverPlaceholder n={index + 1} />
-          )}
+        {/* The lead keeps the same 16/9 stage whatever the project runs on, so
+            the page's rhythm does not depend on the content. What changes is
+            what stands on it: a desktop project fills the frame edge to edge, a
+            mobile one stands its phone at the height of the stage and lets the
+            ground show either side. Stretching a 9/19.5 screenshot across 16/9
+            would crop away everything but a band across the middle of the app —
+            and a full-width phone frame would be three thousand pixels tall. */}
+        <figure
+          className={`relative mt-12 aspect-[16/9] w-full overflow-hidden ring-1 ring-ink/[0.08] md:mt-16 ${
+            isMobileApp
+              ? "flex items-center justify-center bg-[#101014] px-5"
+              : ""
+          }`}
+        >
+          <div
+            className={
+              isMobileApp
+                ? "relative h-[86%] max-w-full overflow-hidden rounded-[1.25rem] ring-1 ring-ink/[0.12] aspect-[9/19.5]"
+                : "absolute inset-0"
+            }
+          >
+            {work.cover ? (
+              <Image
+                // The same hotspot, cut to whichever frame it is going into.
+                src={coverSrc(work.cover, isMobileApp ? "mobile" : "hero")}
+                alt={work.cover.alt}
+                fill
+                sizes={
+                  isMobileApp
+                    ? "(min-width: 1024px) 22vw, 40vw"
+                    : "(min-width: 1024px) 90vw, 100vw"
+                }
+                priority
+                {...(work.cover.lqip
+                  ? ({ placeholder: "blur", blurDataURL: work.cover.lqip } as const)
+                  : {})}
+                className="object-cover"
+              />
+            ) : (
+              <CoverPlaceholder n={index + 1} />
+            )}
+          </div>
         </figure>
 
         <div className="mt-14 grid gap-12 md:mt-20 md:grid-cols-12 md:gap-8">

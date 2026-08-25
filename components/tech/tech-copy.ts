@@ -1,54 +1,33 @@
+import type { AtlasTile } from "@/lib/build-logo-atlas";
+import type { Tool } from "@/lib/content/types";
+
 /**
  * Bone, for reversing single-colour marks out of the void.
  *
  * Lives here rather than in the atlas builder because which marks get reversed,
  * and into what, is an editorial call about this stack on this ground — the
- * builder just applies whatever colour it is handed.
+ * builder just applies whatever colour it is handed. What the Studio stores is
+ * only the decision, `reverse: true`; the colour it resolves to is chrome, and
+ * chrome stays in the repo.
  */
 const MONO_BONE = "#e6e6e1";
 
 /**
- * The tiles the tunnel is built from.
+ * A tool, as the sprite sheet wants it.
  *
- * `src` is real artwork under `public/logo`. `label` is not dead weight beside
- * it — it is what `buildLogoAtlas` draws if the file 404s or fails to decode,
- * so a bad asset costs one legible placeholder rather than a hole in the field.
- *
- * `mono` reverses a single-colour mark out of the void. Only the four marks
- * that ship black-on-transparent carry it; on a #08080a ground those are not
- * dim, they are absent. Everything else keeps its own brand colour, which is
- * the point of using real logos at all.
- *
- * Ordered front-of-stack to tooling. The tunnel assigns tiles at random, so
- * this is for whoever reads the file, not for what ends up on screen.
+ * The whole mapping is this one function: `Tool` is content — a name, initials,
+ * a URL, a yes/no — and `AtlasTile` is what `buildLogoAtlas` rasterises.
+ * `label` is not dead weight beside `src`; it is what gets drawn if the artwork
+ * 404s or fails to decode, so a bad asset costs one legible placeholder rather
+ * than a hole in the field.
  */
-const stack = [
-  { label: "REACT", name: "React", src: "/logo/React-icon.svg.png" },
-  { label: "NEXT", name: "Next.js", src: "/logo/next.png", mono: MONO_BONE },
-  { label: "SVELTE", name: "Svelte", src: "/logo/Svelte.png" },
-  { label: "TW", name: "Tailwind CSS", src: "/logo/Tailwind_CSS_Logo.svg.png" },
-  { label: "JS", name: "JavaScript", src: "/logo/JavaScript-logo.png" },
-  { label: "PHP", name: "PHP", src: "/logo/PHP-logo.svg.png" },
-  { label: "LARAVEL", name: "Laravel", src: "/logo/laravel.png" },
-  { label: "PY", name: "Python", src: "/logo/Python-logo-notext.svg.png" },
-  { label: "JAVA", name: "Java", src: "/logo/java.png" },
-  { label: "KOTLIN", name: "Kotlin", src: "/logo/Kotlin_Icon.png" },
-  { label: "FLUTTER", name: "Flutter", src: "/logo/flutter.png" },
-  { label: "EXPO", name: "Expo", src: "/logo/expo.svg", mono: MONO_BONE },
-  { label: "SUPA", name: "Supabase", src: "/logo/supabase.svg" },
-  { label: "FIREBASE", name: "Firebase", src: "/logo/firebase.svg" },
-  { label: "TORCH", name: "PyTorch", src: "/logo/PyTorch.png" },
-  { label: "TF", name: "TensorFlow", src: "/logo/TensorFlow.png" },
-  {
-    label: "SOL",
-    name: "Solidity",
-    src: "/logo/solidity_logo.svg",
-    mono: MONO_BONE,
-  },
-  { label: "DOCKER", name: "Docker", src: "/logo/docker-mark-ocean-blue.png" },
-  { label: "GIT", name: "GitHub", src: "/logo/github.png", mono: MONO_BONE },
-  { label: "FIGMA", name: "Figma", src: "/logo/figma.webp" },
-] as const;
+export function toAtlasTile(tool: Tool): AtlasTile {
+  return {
+    label: tool.label,
+    src: tool.src ?? undefined,
+    mono: tool.reverse ? MONO_BONE : undefined,
+  };
+}
 
 const NUMBER_WORDS = [
   "ZERO", "ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT",
@@ -69,8 +48,11 @@ export const techCopy = {
   /** Rendered as two stacked display lines, locked to the mouth of the tunnel. */
   heading: ["TECH", "STACK"],
   /* Counted rather than written: the seam claimed twelve tools for as long as
-     the stack was placeholders, and stayed wrong the moment one was added. */
-  seamLeft: `${spell(stack.length)} TOOLS // ONE PIPELINE`,
+     the stack was a list in this file, and stayed wrong the moment one was
+     added. Now the count comes from the dataset, so it cannot be edited apart
+     from the tunnel it describes. */
+  seamLeft: (count: number) =>
+    `${spell(count)} ${count === 1 ? "TOOL" : "TOOLS"} // ONE PIPELINE`,
   seamRight: "TUNNEL OPEN",
   depthLabel: "DEPTH",
   runtimeLabel: "RUNTIME / WEBGL",
@@ -79,7 +61,9 @@ export const techCopy = {
   /** The glyphs of the tag, for the no-WebGL fallback and screen readers. */
   tagOpen: "<",
   tagClose: "/>",
-  stack,
+  /**
+   * Drawn into the font probe, which has to hold *something* legible in the
+   * mono face before the tools have loaded — it is what `waitForFont` waits on.
+   */
+  probeLabel: "STACK",
 } as const;
-
-export type TechTile = (typeof techCopy.stack)[number];
