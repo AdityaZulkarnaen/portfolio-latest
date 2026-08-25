@@ -277,6 +277,16 @@ html.lenis body {
   right: 0;
 }
 
+/* The kind chip, lifted a hair off the note.
+   `z-index` is not enough on its own in here: this sits in a `preserve-3d`
+   context, where siblings are sorted by depth first and the chip is exactly
+   coplanar with the opaque slice behind it. A millimetre of real depth is
+   unambiguous, and it costs nothing — at this perspective 2px is well under a
+   pixel of magnification. */
+.peel-chip {
+  transform: translateZ(2px);
+}
+
 /* The light on the curve.
    `--lit-a` and `--lit-b` are this band's two hinges, so the sheen runs
    continuously across the joins instead of stepping band by band. The flat

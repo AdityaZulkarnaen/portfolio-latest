@@ -26,7 +26,7 @@ export const worksCopy = {
   indexBack: "BACK TO INDEX",
 
   /** The detail page. */
-  backLabel: "ALL WORKS",
+  backLabel: "BACK TO ALL WORKS",
   roleLabel: "ROLE",
   yearLabel: "YEAR",
   stackLabel: "STACK",

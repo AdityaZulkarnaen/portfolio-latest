@@ -83,12 +83,22 @@ const CONTENT_1440 = 1440 - 32 - 120;
 const CONTENT_1920 = 1760 - 32 - 120;
 const GAP = 40;
 
+/**
+ * Below `md` the gap is `gap-x-4`, not `gap-x-10`, and two phone tiles share
+ * the row — a much tighter budget than anything on a desktop, on the smallest
+ * tiles the page has.
+ */
+const PHONE_GAP = 16;
+const CONTENT_390 = 390 - 20 - 20;
+
 const TILES = [
   ["half @1440", (CONTENT_1440 - GAP) / 2, 10 / 16, GAP / 2],
   ["half @1920", (CONTENT_1920 - GAP) / 2, 10 / 16, GAP / 2],
   ["row beside phone", CONTENT_1440 - GAP - phone, 10 / 16, GAP / 2],
   ["row alone @1920", CONTENT_1920, 10 / 16, 32],
   ["phone", phone, 19.5 / 9, GAP / 2],
+  ["phone two-up @390", (CONTENT_390 - PHONE_GAP) / 2, 19.5 / 9, PHONE_GAP / 2],
+  ["full width @390", CONTENT_390, 10 / 16, 20],
 ];
 
 let worst = Infinity;

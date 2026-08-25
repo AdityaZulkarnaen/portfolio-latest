@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import BackLink from "@/components/works/back-link";
 import BlueprintGrid from "@/components/works/blueprint-grid";
 import WorkCard from "@/components/works/work-card";
 import { worksCopy } from "@/components/works/works-copy";
@@ -28,26 +28,19 @@ export default async function WorkIndexPage() {
       <BlueprintGrid />
 
       <div className="relative mx-auto w-full max-w-[110rem] pb-28 pl-5 pr-5 pt-32 sm:pr-[var(--rail-gutter)] md:pb-40 md:pl-8 md:pt-40">
-        <header className="mb-14 flex flex-wrap items-end justify-between gap-x-8 gap-y-6 md:mb-20">
-          <div className="space-y-4">
-            <p className={`text-acid ${META_TYPE_BASE}`}>
-              {worksCopy.indexEyebrow}
-            </p>
-            <h1 className="font-display text-[clamp(2.5rem,9vw,7rem)] font-black uppercase leading-[0.85] tracking-[-0.045em] text-ink">
-              {worksCopy.indexHeading}
-            </h1>
-          </div>
+        {/* Above the heading rather than opposite it. Sat in the corner of a
+            header this wide, the way out was the last thing on the page a
+            thumb would find; the first line of the page is where someone looks
+            for it. */}
+        <BackLink href="/">{worksCopy.indexBack}</BackLink>
 
-          <Link
-            href="/"
-            className={`group flex items-center gap-3 text-ink transition-colors hover:text-acid ${META_TYPE_BASE}`}
-          >
-            <span
-              aria-hidden
-              className="block h-px w-6 bg-current transition-all duration-500 group-hover:w-10"
-            />
-            {worksCopy.indexBack}
-          </Link>
+        <header className="mb-14 mt-10 space-y-4 md:mb-20 md:mt-14">
+          <p className={`text-acid ${META_TYPE_BASE}`}>
+            {worksCopy.indexEyebrow}
+          </p>
+          <h1 className="font-display text-[clamp(2.5rem,9vw,7rem)] font-black uppercase leading-[0.85] tracking-[-0.045em] text-ink">
+            {worksCopy.indexHeading}
+          </h1>
         </header>
 
         {/* Same wrapped row as Chapter .04 — see `featured-works.tsx`. */}

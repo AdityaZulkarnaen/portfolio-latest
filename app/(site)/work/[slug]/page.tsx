@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import BackLink from "@/components/works/back-link";
 import BlueprintGrid from "@/components/works/blueprint-grid";
 import CoverPlaceholder from "@/components/works/cover-placeholder";
 import WorkBody from "@/components/works/work-body";
@@ -58,16 +59,7 @@ export default async function WorkDetailPage({
       <BlueprintGrid />
 
       <div className="relative mx-auto w-full max-w-[110rem] pb-28 pl-5 pr-5 pt-32 sm:pr-[var(--rail-gutter)] md:pb-40 md:pl-8 md:pt-40">
-        <Link
-          href="/work"
-          className={`group inline-flex items-center gap-3 text-muted transition-colors hover:text-acid ${META_TYPE_BASE}`}
-        >
-          <span
-            aria-hidden
-            className="block h-px w-6 bg-current transition-all duration-500 group-hover:w-10"
-          />
-          {worksCopy.backLabel}
-        </Link>
+        <BackLink href="/work">{worksCopy.backLabel}</BackLink>
 
         <header className="mt-10 md:mt-14">
           <div className={`flex flex-wrap items-center gap-3 ${META_TYPE_BASE}`}>

@@ -36,11 +36,19 @@ const WIDTH: Record<WorkWidth, string> = {
 };
 
 /**
- * A phone tile, sized by height and letting its aspect decide the width — the
- * opposite of every other tile here, and the only way to keep the promise: a
- * 9/19.5 frame given a width instead comes out taller than the laptop it is
- * being read on. `min(70svh, 36rem)` caps it in both directions, so it fits on
- * a laptop screen without becoming a two-storey object on a tall monitor.
+ * A phone tile, at its two sizes.
+ *
+ * **On a phone** it is half the row, so two stand side by side — which is the
+ * only arrangement that makes sense there: one phone screenshot per row on a
+ * phone-width screen is a column of tall objects with nothing beside them, and
+ * you scroll past two projects in the space one used to take.
+ *
+ * **From `md` up** it goes back to being sized by *height* and letting its
+ * aspect decide the width — the opposite of every other tile here, and the only
+ * way to keep the promise: a 9/19.5 frame given a width instead comes out
+ * taller than the laptop it is being read on. `min(70svh, 36rem)` caps it in
+ * both directions, so it fits on a laptop screen without becoming a two-storey
+ * object on a tall monitor.
  *
  * Written out as one literal string, and it has to stay that way: Tailwind
  * generates only the classes it can *see* in the source, so assembling this
@@ -48,11 +56,15 @@ const WIDTH: Record<WorkWidth, string> = {
  * a tile with no width at all. The first pass here did exactly that. The 9/19.5
  * is duplicated from `FRAME.mobile` for the same reason — keep the two in step.
  *
- * `shrink-0` because a phone tile is not negotiable: it is a fixed object in a
- * row of elastic ones, and letting flex squeeze it would break the aspect its
- * height was chosen for.
+ * `0.5rem` is half of `gap-x-4`, the gap below `md`; two tiles that each give
+ * up half the gap fill the row exactly.
+ *
+ * `shrink-0` because a phone tile is not negotiable at either size: it is a
+ * fixed object in a row of elastic ones, and letting flex squeeze it would
+ * break the aspect the size was chosen for.
  */
-const PHONE_TILE = "w-[calc(min(70svh,36rem)*9/19.5)] shrink-0";
+const PHONE_TILE =
+  "w-[calc(50%-0.5rem)] shrink-0 md:w-[calc(min(70svh,36rem)*9/19.5)]";
 
 /**
  * The tile is the screen the project runs on.
@@ -164,7 +176,7 @@ function plate(skip: number, fraction: number, bleed: number): CSSProperties {
  * slightly wide is the safe direction.
  */
 function sizesFor(work: Work): string {
-  if (work.device === "mobile") return "(min-width: 768px) 20vw, 70vw";
+  if (work.device === "mobile") return "(min-width: 768px) 20vw, 48vw";
   return work.width === "half"
     ? "(min-width: 768px) 50vw, 100vw"
     : "(min-width: 768px) 80vw, 100vw";
@@ -295,16 +307,23 @@ export default function WorkCard({ work, index, peel = false }: WorkCardProps) {
           style={{ height: `${(HEAD * 100).toFixed(4)}%` }}
         >
           {slice(0, HEAD, BLEED, LIT[0], LIT[0])}
+          {bands}
 
           {/* The chip, flush into the tile's top-right corner exactly as on the
-              reference. On the head band rather than in a slice, so it travels
-              with the part of the note that stays flat and is never cut by a
-              hinge. */}
-          <span className="absolute right-0 top-0 z-10 bg-acid px-2 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-void">
+              reference. It rides the head band, so it travels with the part of
+              the note that stays flat and is never cut by a hinge.
+
+              Last child and `peel-chip`, and both are load-bearing. Everything
+              in here lives in a `preserve-3d` context, where `z-index` stops
+              being the last word: siblings are sorted by depth, and the chip is
+              exactly coplanar with an opaque slice that clips its own contents.
+              A tie in depth is broken by paint order, and a tie is not
+              something to rely on — so `peel-chip` gives it a real depth of its
+              own, a hair in front of the note, and being written last settles
+              the tie the same way in the engines that never got that far. */}
+          <span className="peel-chip absolute right-0 top-0 max-w-[calc(100%-0.75rem)] truncate bg-acid px-2 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-void">
             {work.kind}
           </span>
-
-          {bands}
         </span>
       </div>
 
