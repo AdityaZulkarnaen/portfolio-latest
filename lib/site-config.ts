@@ -53,13 +53,23 @@ export const footerConfig = {
     { text: "innovation", strong: true },
     { text: ".", strong: false },
   ],
+  // Typed as plain strings on purpose. Under this object's `as const` every
+  // href would otherwise narrow to the exact URL pasted, and the footer's
+  // "drop the ones that go nowhere" guard would become a comparison TypeScript
+  // can prove is always true — an error, and a rule that quietly stops
+  // existing the moment the last profile is filled in.
   social: [
-    // Derived from the git author on this repo. Worth a look before it ships.
     { label: "Github", href: "https://github.com/AdityaZulkarnaen" },
     { label: "Instagram", href: "https://www.instagram.com/adlkyzkrnn/" },
-    { label: "Linkedin", href: "https://www.linkedin.com/in/aditya-zulkarnaen-7596142a8/" },
-    { label: "Spotify", href: "https://open.spotify.com/user/76p6n2lekwfklqm77tt0b6h85?si=9d3c1630f89045e8" },
-  ],
+    {
+      label: "Linkedin",
+      href: "https://www.linkedin.com/in/aditya-zulkarnaen-7596142a8/",
+    },
+    {
+      label: "Spotify",
+      href: "https://open.spotify.com/user/76p6n2lekwfklqm77tt0b6h85?si=9d3c1630f89045e8",
+    },
+  ] as { label: string; href: string }[],
   /** Rendered as `© <year> <this>`; the year is taken from the clock. */
   rights: "Aditya Lucky Zulkarnaen. All rights reserved.",
   colophon: "adityazulkarnaen083@gmail.com",

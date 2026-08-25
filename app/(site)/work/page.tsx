@@ -25,7 +25,7 @@ export default async function WorkIndexPage() {
 
   return (
     <main className="relative w-full overflow-hidden bg-void">
-      <BlueprintGrid />
+      {/* <BlueprintGrid /> */}
 
       <div className="relative mx-auto w-full max-w-[110rem] pb-28 pl-5 pr-5 pt-32 sm:pr-[var(--rail-gutter)] md:pb-40 md:pl-8 md:pt-40">
         {/* Above the heading rather than opposite it. Sat in the corner of a

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { gsap, killScrollTriggersIn, useGSAP } from "@/lib/gsap";
+import { gsap, killScrollTriggersIn, ScrollTrigger, useGSAP } from "@/lib/gsap";
 import { useReducedMotion } from "@/lib/use-media-query";
 import { META_TYPE_BASE } from "@/lib/site-config";
 import type { Experience as ExperienceEntry } from "@/lib/content/types";
@@ -63,6 +63,138 @@ export default function Experience({ experiences }: ExperienceProps) {
     observer.observe(head);
     return () => observer.disconnect();
   }, []);
+
+  // The budget, enforced.
+  //
+  // The stack's parking lines assume the deepest card still has a screen's
+  // worth of room under it. Add entries, or give one a long summary, and that
+  // assumption goes quietly: a parked card cannot be scrolled up to, it is
+  // holding still by definition, so whatever sits past the fold when the lid
+  // closes over it is never readable at all. It depends on the copy in the CMS,
+  // so the only way to know is to measure.
+  //
+  // What has to give is the line the stack parks on, and it has to give *while
+  // you scroll*. Sticky offsets alone cannot do this: a bar that has parked is
+  // at its final position by definition, so no static arrangement of offsets
+  // can let the bars above a deep card sit at full pitch early on and be gone
+  // by the time that card arrives. Lifting only the overrunning card is what
+  // the first attempt did, and it is wrong — the card climbs partway over the
+  // bar above and stops mid-glyph.
+  //
+  // So the correction is one number, `--exp-lift`, subtracted from every
+  // parking line at once, and scrubbed from 0 to its full value as the first
+  // card that would overrun rises into view. The stack keeps its pitch and
+  // travels up as a body; the earliest bars run off the top, which is the room
+  // being made. Every card that parks before that window still parks on its
+  // ideal line, so no bar is ever lifted out of sight while its own body is the
+  // one being read.
+  //
+  // Each card asks for what it overruns by, capped at the distance to the first
+  // card's line — nothing is ever lifted so far that its own bar goes behind
+  // the pinned roof — and the largest request wins. On a viewport with room to
+  // spare every request is zero, the trigger never fires, and the layout is the
+  // sticky offsets untouched.
+  //
+  // Not gated on reduced motion, and it has no trigger element inside the
+  // section so the reduced-motion branch below cannot sweep it up. This is not
+  // decoration: it is scroll-linked layout, exactly like the sticky stack that
+  // those visitors already get, and switching it off would only hand them the
+  // truncated card.
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+
+    const cards = Array.from(
+      root.querySelectorAll<HTMLLIElement>("[data-exp-card]"),
+    );
+    if (cards.length === 0) return;
+
+    let lift = 0;
+    let from = 0;
+    let to = 1;
+
+    // Layout position, not painted position. `getBoundingClientRect` reports
+    // where a sticky card has been shifted to, which is precisely the number
+    // that must not be used here — half these cards are parked at any moment.
+    // `offsetTop` up the chain is unaffected by sticky.
+    const flowTop = (el: HTMLElement) => {
+      let y = 0;
+      let node: HTMLElement | null = el;
+      while (node) {
+        y += node.offsetTop;
+        node = node.offsetParent as HTMLElement | null;
+      }
+      return y;
+    };
+
+    const measure = () => {
+      const viewport = window.innerHeight;
+
+      // Read the ideal lines with the correction switched off. They are
+      // `--exp-head` and `--exp-row`, which four media queries have a say in
+      // between them; a second copy of that arithmetic here is the sort of
+      // thing that drifts from the stylesheet and is never noticed.
+      root.style.setProperty("--exp-lift", "0px");
+      const floor = parseFloat(getComputedStyle(cards[0]).top);
+      lift = 0;
+      if (!Number.isFinite(floor)) return;
+
+      let first: HTMLElement | null = null;
+      let firstLine = 0;
+
+      for (const card of cards) {
+        const line = parseFloat(getComputedStyle(card).top);
+        // `offsetHeight` is the card wide open: sticky changes where a box is
+        // painted, never how tall it is, so this holds whether the card is
+        // parked, rising, or still below the fold.
+        const overrun = line + card.offsetHeight - viewport;
+        if (overrun <= 0) continue;
+        lift = Math.max(lift, Math.min(overrun, line - floor));
+        if (!first) {
+          first = card;
+          firstLine = line;
+        }
+      }
+
+      lift = Math.max(0, Math.round(lift));
+      if (!first) return;
+
+      // The window: from the moment that card's bar clears the bottom edge to
+      // the moment it reaches its own parking line. By the time it stops, the
+      // room it needs has been made.
+      const top = flowTop(first);
+      from = top - viewport;
+      to = Math.max(from + 1, top - firstLine);
+    };
+
+    const apply = (progress: number) =>
+      root.style.setProperty("--exp-lift", `${lift * progress}px`);
+
+    measure();
+
+    // Re-measured on every refresh, which is what carries a resize, the `md`
+    // reflow and the font swap — all three change a card's height or its line.
+    ScrollTrigger.addEventListener("refreshInit", measure);
+    const uplift = ScrollTrigger.create({
+      // Deliberately outside the section: `killScrollTriggersIn` walks by
+      // trigger element, and this one must survive it. The start and end are
+      // absolute scroll positions, so the element is only a formality.
+      trigger: document.documentElement,
+      start: () => from,
+      end: () => to,
+      onUpdate: (self) => apply(self.progress),
+      onRefresh: (self) => apply(self.progress),
+    });
+    apply(uplift.progress);
+
+    document.fonts?.ready.then(() => ScrollTrigger.refresh()).catch(() => {});
+
+    return () => {
+      ScrollTrigger.removeEventListener("refreshInit", measure);
+      uplift.kill();
+      root.style.removeProperty("--exp-lift");
+    };
+  }, [experiences]);
 
   useGSAP(
     () => {
@@ -151,6 +283,12 @@ export default function Experience({ experiences }: ExperienceProps) {
       // never readable at all. Measured against the real GDGoC summary the old
       // numbers overran a 1280x700 laptop by 135px.
       //
+      // These values are the ideal, not the last word: the budget cannot be
+      // satisfied by constants once `n` and the summaries come from the CMS, so
+      // the uplift effect above measures it and scrubs the whole stack up by
+      // whatever the deepest card overruns by. `--exp-lift` is that correction,
+      // and it is 0px wherever these numbers already fit.
+      //
       // Note which axis that is. The bar's layout is a width question and stays
       // on `md`; the budget is a height question and is gated on height. Those
       // are not the same breakpoint and treating them as one is what broke it:
@@ -235,8 +373,13 @@ export default function Experience({ experiences }: ExperienceProps) {
               // on `--exp-row` would park each card 2px high and shave that
               // much off the bar below it — invisible on one card, 2px of
               // creeping misalignment by the fourth.
+              data-exp-card
+              // `--exp-lift` is inherited from the section and is the same
+              // number for every card, so subtracting it moves the stack
+              // without touching its pitch. 0px wherever the ideal lines
+              // already leave the deepest body on screen.
               style={{
-                top: `calc(var(--exp-head) + ${i} * (var(--exp-row) + 2px))`,
+                top: `calc(var(--exp-head) + ${i} * (var(--exp-row) + 2px) - var(--exp-lift, 0px))`,
               }}
               // Opaque, and that is the whole mechanism: a card closes the one
               // before it by covering it. Later siblings paint over earlier
@@ -305,8 +448,11 @@ export default function Experience({ experiences }: ExperienceProps) {
               that a screen reader has no stack to close. */}
           <li
             aria-hidden
+            // Same `--exp-lift` as the cards, which is what keeps the seal
+            // exact: the lid is defined as one pitch below the last card, and
+            // moving both by the same number preserves that gap.
             style={{
-              top: `calc(var(--exp-head) + ${experiences.length} * (var(--exp-row) + 2px))`,
+              top: `calc(var(--exp-head) + ${experiences.length} * (var(--exp-row) + 2px) - var(--exp-lift, 0px))`,
             }}
             className="sticky min-h-[62svh] border-t-2 border-void bg-acid"
           >
