@@ -5,14 +5,26 @@ import Link from "next/link";
 import { gsap, killScrollTriggersIn, ScrollTrigger, useGSAP } from "@/lib/gsap";
 import { useReducedMotion } from "@/lib/use-media-query";
 import { META_TYPE_BASE } from "@/lib/site-config";
+import type { Work } from "@/lib/content/types";
 import BlueprintGrid from "./blueprint-grid";
 import WorkCard from "./work-card";
-import { featuredWorks, worksCopy, works } from "./works-copy";
+import { worksCopy } from "./works-copy";
 
 /** The line a tile lies flat on, as a fraction of viewport height. */
 const SETTLE = 0.5;
 /** How far below that line the curl reaches full, in viewport heights. */
 const REACH = 0.55;
+
+type FeaturedWorksProps = {
+  /** Only the featured projects. The grid renders exactly what it is given. */
+  works: Work[];
+  /**
+   * How many projects exist in total, featured or not. Shown beside the "ALL
+   * WORKS" door, which would otherwise promise the same six tiles it sits next
+   * to — the count is what makes the door worth opening.
+   */
+  total: number;
+};
 
 /**
  * Chapter .04 — the selected work.
@@ -29,8 +41,12 @@ const REACH = 0.55;
  * on a short viewport, so they would hang half-curled forever with no way to
  * finish. Measuring the real position has no such failure mode, costs one
  * rect read per tile per frame, and behaves identically in both directions.
+ *
+ * The projects arrive as props rather than as an import. This component runs on
+ * the client — it measures rects every frame — so it cannot read Sanity itself;
+ * `app/(site)/page.tsx` does the fetching and hands the result down.
  */
-export default function FeaturedWorks() {
+export default function FeaturedWorks({ works, total }: FeaturedWorksProps) {
   const rootRef = useRef<HTMLElement>(null);
   const reducedMotion = useReducedMotion();
 
@@ -127,7 +143,7 @@ export default function FeaturedWorks() {
             >
               {worksCopy.allLabel}
               <span className="tabular-nums text-muted">
-                ({String(works.length).padStart(2, "0")})
+                ({String(total).padStart(2, "0")})
               </span>
               <span
                 aria-hidden
@@ -138,7 +154,7 @@ export default function FeaturedWorks() {
         </header>
 
         <div className="grid grid-cols-12 gap-x-4 gap-y-12 md:gap-x-10 md:gap-y-20">
-          {featuredWorks.map((work, i) => (
+          {works.map((work, i) => (
             <WorkCard key={work.slug} work={work} index={i} peel />
           ))}
         </div>

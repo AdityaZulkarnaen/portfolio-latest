@@ -4,11 +4,22 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import BlueprintGrid from "@/components/works/blueprint-grid";
 import CoverPlaceholder from "@/components/works/cover-placeholder";
-import { works, worksCopy } from "@/components/works/works-copy";
+import WorkBody from "@/components/works/work-body";
+import { worksCopy } from "@/components/works/works-copy";
+import { getWorks } from "@/lib/content/source";
+import { coverSrc } from "@/lib/sanity/image";
 import { META_TYPE_BASE } from "@/lib/site-config";
 
-/** Every project is known at build time, so every case page is prerendered. */
-export function generateStaticParams() {
+/**
+ * Every project is known at build time, so every case page is prerendered.
+ *
+ * A project added in the Studio afterwards is not in this list, and the page
+ * for it is rendered on first request and then cached — the revalidation
+ * webhook in `app/api/revalidate/route.ts` is what keeps the existing ones from
+ * going stale.
+ */
+export async function generateStaticParams() {
+  const works = await getWorks();
   return works.map((work) => ({ slug: work.slug }));
 }
 
@@ -16,6 +27,7 @@ export async function generateMetadata({
   params,
 }: PageProps<"/work/[slug]">): Promise<Metadata> {
   const { slug } = await params;
+  const works = await getWorks();
   const work = works.find((item) => item.slug === slug);
   if (!work) return {};
 
@@ -29,7 +41,11 @@ export default async function WorkDetailPage({
   params,
 }: PageProps<"/work/[slug]">) {
   const { slug } = await params;
+  // Shares `generateMetadata`'s round trip: `getWorks` is memoized per request.
+  const works = await getWorks();
   const index = works.findIndex((item) => item.slug === slug);
+  // Also the empty-dataset case — with nothing published there is no index to
+  // find, and every case URL is legitimately a 404.
   if (index === -1) notFound();
 
   const work = works[index];
@@ -72,11 +88,15 @@ export default async function WorkDetailPage({
         <figure className="relative mt-12 aspect-[16/9] w-full overflow-hidden ring-1 ring-ink/[0.08] md:mt-16">
           {work.cover ? (
             <Image
-              src={work.cover}
-              alt={work.alt}
+              // A wider crop than any tile uses, taken from the same hotspot.
+              src={coverSrc(work.cover, "hero")}
+              alt={work.cover.alt}
               fill
               sizes="(min-width: 1024px) 90vw, 100vw"
               priority
+              {...(work.cover.lqip
+                ? ({ placeholder: "blur", blurDataURL: work.cover.lqip } as const)
+                : {})}
               className="object-cover"
             />
           ) : (
@@ -131,15 +151,8 @@ export default async function WorkDetailPage({
             ) : null}
           </dl>
 
-          <div className="space-y-6 md:col-span-7 md:col-start-6">
-            {work.body.map((paragraph) => (
-              <p
-                key={paragraph.slice(0, 32)}
-                className="max-w-[62ch] font-sans text-lg leading-relaxed text-ink/80"
-              >
-                {paragraph}
-              </p>
-            ))}
+          <div className="md:col-span-7 md:col-start-6">
+            <WorkBody value={work.body} />
           </div>
         </div>
 

@@ -1,12 +1,15 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { Work, WorkRatio } from "@/lib/content/types";
+import { coverSrc } from "@/lib/sanity/image";
 import { META_TYPE_BASE } from "@/lib/site-config";
 import CoverPlaceholder from "./cover-placeholder";
-import { type Work, type WorkRatio } from "./works-copy";
 
 /**
  * Span classes have to exist as literal strings in the source for Tailwind to
- * generate them — a template literal built at runtime produces nothing.
+ * generate them — a template literal built at runtime produces nothing. This is
+ * also why `span`, `spanSm` and `ratio` are constrained dropdowns in the
+ * Studio: a value outside these maps yields no class at all.
  */
 const SPAN_SM: Record<Work["spanSm"], string> = {
   6: "col-span-6",
@@ -40,6 +43,8 @@ type WorkCardProps = {
 };
 
 export default function WorkCard({ work, index, peel = false }: WorkCardProps) {
+  const cover = work.cover;
+
   return (
     <Link
       href={`/work/${work.slug}`}
@@ -54,12 +59,20 @@ export default function WorkCard({ work, index, peel = false }: WorkCardProps) {
         }
         className={`relative overflow-hidden bg-[#101014] ring-1 ring-ink/[0.08] ${RATIO[work.ratio]}`}
       >
-        {work.cover ? (
+        {cover ? (
           <Image
-            src={work.cover}
-            alt={work.alt}
+            // Cropped on Sanity's side to this tile's shape, so the editor's
+            // hotspot decides what survives the cut rather than the centre of
+            // the frame deciding it by default.
+            src={coverSrc(cover, work.ratio)}
+            alt={cover.alt}
             fill
             sizes="(min-width: 768px) 66vw, 100vw"
+            // The 20px preview Sanity extracts on upload. Absent only on assets
+            // that predate metadata extraction, in which case the image pops in.
+            {...(cover.lqip
+              ? ({ placeholder: "blur", blurDataURL: cover.lqip } as const)
+              : {})}
             className="object-cover transition-transform duration-[1.2s] ease-out group-hover:scale-[1.03]"
           />
         ) : (

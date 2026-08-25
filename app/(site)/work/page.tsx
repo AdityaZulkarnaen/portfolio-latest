@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import BlueprintGrid from "@/components/works/blueprint-grid";
 import WorkCard from "@/components/works/work-card";
-import { works, worksCopy } from "@/components/works/works-copy";
+import { worksCopy } from "@/components/works/works-copy";
+import { getWorks } from "@/lib/content/source";
 import { META_TYPE_BASE } from "@/lib/site-config";
 
 export const metadata: Metadata = {
@@ -19,7 +20,9 @@ export const metadata: Metadata = {
  * list, and because it is a Server Component with no client bundle at all —
  * the whole page is the same `WorkCard` the chapter uses, minus the `peel`.
  */
-export default function WorkIndexPage() {
+export default async function WorkIndexPage() {
+  const works = await getWorks();
+
   return (
     <main className="relative w-full overflow-hidden bg-void">
       <BlueprintGrid />

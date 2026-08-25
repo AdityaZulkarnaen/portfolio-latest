@@ -4,10 +4,20 @@ import { useEffect, useRef } from "react";
 import { gsap, killScrollTriggersIn, useGSAP } from "@/lib/gsap";
 import { useReducedMotion } from "@/lib/use-media-query";
 import { META_TYPE_BASE } from "@/lib/site-config";
-import { experienceCopy, experiences } from "./experience-copy";
+import type { Experience as ExperienceEntry } from "@/lib/content/types";
+import { experienceCopy } from "./experience-copy";
 
 /** Slabs the chapter reaches up with, matching Chapter .02's takeover. */
 const SLATS = 3;
+
+type ExperienceProps = {
+  /**
+   * Oldest first. The order is the mechanism, not a preference: each card is
+   * closed under the next one, so the last entry is the one left open at the
+   * end of the chapter. `position` in the Studio is what fixes it.
+   */
+  experiences: ExperienceEntry[];
+};
 
 /**
  * Chapter .05 — the record, open, then shut.
@@ -31,8 +41,11 @@ const SLATS = 3;
  * The one thing JS is needed for is `--exp-head`: the offsets are measured off
  * the real roof, which is clamp-sized and wraps differently on every viewport.
  * Same measure-don't-guess as `--about-head`.
+ *
+ * The entries arrive as props: this is a client component, so the fetch happens
+ * in `app/(site)/page.tsx` and the result is handed down.
  */
-export default function Experience() {
+export default function Experience({ experiences }: ExperienceProps) {
   const rootRef = useRef<HTMLElement>(null);
   const headRef = useRef<HTMLDivElement>(null);
   const reducedMotion = useReducedMotion();

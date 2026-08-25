@@ -5,7 +5,7 @@ import SiteScroll from "@/components/site-scroll";
 import SiteSmoothScroll from "@/components/site-smooth-scroll";
 import SiteTrail from "@/components/site-trail";
 import { archivo, blurWeb, geistMono, geistSans } from "@/lib/fonts";
-import "./globals.css";
+import "../globals.css";
 
 export const metadata: Metadata = {
   title: "Aditya Zulkarnaen — Creative Frontend Developer",

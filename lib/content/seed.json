@@ -1,0 +1,175 @@
+{
+  "works": [
+    {
+      "position": 1,
+      "slug": "commerce-platform",
+      "name": "Commerce Platform",
+      "year": "2025",
+      "kind": "CODING PROJECT",
+      "role": "Full-stack",
+      "summary": "A storefront and its back office, built as one deployable.",
+      "bodyParagraphs": [
+        "Placeholder body copy. Replace with what the project actually was, what made it hard, and what you decided — a case study is a record of judgement, not a feature list.",
+        "Two or three paragraphs is usually the right length. The detail page renders one paragraph per block in the Portable Text editor."
+      ],
+      "stack": ["Next.js", "TypeScript", "Laravel", "Supabase"],
+      "span": 8,
+      "spanSm": 12,
+      "ratio": "wide",
+      "featured": true
+    },
+    {
+      "position": 2,
+      "slug": "campus-superapp",
+      "name": "Campus Superapp",
+      "year": "2025",
+      "kind": "MOBILE",
+      "role": "Mobile engineer",
+      "summary": "One app for everything a campus makes students queue for.",
+      "bodyParagraphs": [
+        "Placeholder body copy. Replace with the real account of the project."
+      ],
+      "stack": ["Flutter", "Firebase", "Kotlin"],
+      "span": 4,
+      "spanSm": 12,
+      "ratio": "tall",
+      "featured": true
+    },
+    {
+      "position": 3,
+      "slug": "realtime-dashboard",
+      "name": "Realtime Dashboard",
+      "year": "2024",
+      "kind": "CODING PROJECT",
+      "role": "Frontend / data",
+      "summary": "Live operational telemetry, readable at a glance.",
+      "bodyParagraphs": [
+        "Placeholder body copy. Replace with the real account of the project."
+      ],
+      "stack": ["React", "TypeScript", "Python", "Docker"],
+      "span": 6,
+      "spanSm": 12,
+      "ratio": "square",
+      "featured": true
+    },
+    {
+      "position": 4,
+      "slug": "vision-pipeline",
+      "name": "Vision Pipeline",
+      "year": "2024",
+      "kind": "MACHINE LEARNING",
+      "role": "Data engineer",
+      "summary": "Training and serving a model without two codebases.",
+      "bodyParagraphs": [
+        "Placeholder body copy. Replace with the real account of the project."
+      ],
+      "stack": ["PyTorch", "TensorFlow", "Python"],
+      "span": 6,
+      "spanSm": 12,
+      "ratio": "square",
+      "featured": true
+    },
+    {
+      "position": 5,
+      "slug": "onchain-ledger",
+      "name": "Onchain Ledger",
+      "year": "2023",
+      "kind": "WEB3",
+      "role": "Contracts / frontend",
+      "summary": "Settlement that anyone can audit and nobody can quietly edit.",
+      "bodyParagraphs": [
+        "Placeholder body copy. Replace with the real account of the project."
+      ],
+      "stack": ["Solidity", "Next.js", "TypeScript"],
+      "span": 6,
+      "spanSm": 6,
+      "ratio": "square",
+      "featured": true
+    },
+    {
+      "position": 6,
+      "slug": "design-system",
+      "name": "Design System",
+      "year": "2023",
+      "kind": "UI SYSTEM",
+      "role": "Designer / engineer",
+      "summary": "The tokens, the components, and the rules that keep them honest.",
+      "bodyParagraphs": [
+        "Placeholder body copy. Replace with the real account of the project."
+      ],
+      "stack": ["Figma", "React", "Tailwind CSS"],
+      "span": 6,
+      "spanSm": 6,
+      "ratio": "square",
+      "featured": true
+    },
+    {
+      "position": 7,
+      "slug": "type-specimen",
+      "name": "Type Specimen",
+      "year": "2022",
+      "kind": "CODING PROJECT",
+      "role": "Designer / engineer",
+      "summary": "A variable-font specimen you can drag around.",
+      "bodyParagraphs": [
+        "Placeholder body copy. Replace with the real account of the project."
+      ],
+      "stack": ["JavaScript", "Figma"],
+      "span": 6,
+      "spanSm": 6,
+      "ratio": "square",
+      "featured": false
+    },
+    {
+      "position": 8,
+      "slug": "queue-service",
+      "name": "Queue Service",
+      "year": "2022",
+      "kind": "BACKEND",
+      "role": "Backend",
+      "summary": "Jobs that survive a deploy, a crash, and a bad Tuesday.",
+      "bodyParagraphs": [
+        "Placeholder body copy. Replace with the real account of the project."
+      ],
+      "stack": ["Java", "Docker", "PHP"],
+      "span": 6,
+      "spanSm": 6,
+      "ratio": "square",
+      "featured": false
+    }
+  ],
+  "experiences": [
+    {
+      "position": 1,
+      "slug": "gamaforce",
+      "role": "Software Programmer",
+      "org": "GAMAFORCE",
+      "summary": "PLACEHOLDER. Writing software for the team's unmanned aerial systems — ground-control tooling and the interfaces the crew actually flies with. Replace this with what you built, what constrained it, and what you decided.",
+      "period": "PLACEHOLDER — 2023"
+    },
+    {
+      "position": 2,
+      "slug": "katy-sman1-yogyakarta",
+      "role": "Frontend Developer",
+      "org": "KATY SMAN 1 Yogyakarta",
+      "summary": "PLACEHOLDER. Front-end work on the school's own web platform: turning the design into responsive, accessible screens and keeping one component set honest as the scope grew. Replace with the real account.",
+      "period": "PLACEHOLDER — 2024"
+    },
+    {
+      "position": 3,
+      "slug": "ugm-bcc",
+      "role": "Backend Mentee",
+      "org": "UGM BCC",
+      "summary": "PLACEHOLDER. Backend track at the Basic Computing Community — services, data models and API design, learned by shipping small systems end to end and having them reviewed. Replace with the real account.",
+      "period": "PLACEHOLDER — 2025"
+    },
+    {
+      "position": 4,
+      "slug": "gdgoc-ugm",
+      "role": "Hacker Frontend",
+      "org": "Google Developer Groups on Campus",
+      "summary": "Representing GDGoC UGM in the Google Solution Challenge, I serve as a Front-End Developer tasked with engineering an intuitive and performance-optimized application. My role involves transforming complex social challenges into user-centric digital experiences, leveraging modern web technologies to build a solution that is not only functional but also scalable for real-world implementation.",
+      "period": "December 2025 – July 2026"
+    }
+  ]
+}
