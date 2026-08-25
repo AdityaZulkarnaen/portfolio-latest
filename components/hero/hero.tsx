@@ -378,13 +378,18 @@ export default function Hero() {
   return (
     <div
       ref={wrapperRef}
+      id="hero"
       data-chapter=".01"
       data-chapter-name="Intro"
       className="relative h-[200svh] w-full"
     >
+      {/* `id` is on the chapter, not on the sticky screen inside it. An anchor
+          to a sticky element lands wherever that element happens to be stuck,
+          which is the middle of the chapter; the chapter's own top is the only
+          position that means "the start of this". `site-menu.tsx` reads these,
+          and it is the same element the rail reads for its ticks. */}
       <section
         ref={sectionRef}
-        id="hero"
         className="sticky top-0 h-svh w-full overflow-hidden bg-void"
       >
         {/* Never display:none — a hidden node would not trigger the font load. */}

@@ -1,9 +1,17 @@
 import Link from "next/link";
-import { META_TYPE, siteConfig } from "@/lib/site-config";
+import SiteMenu from "@/components/site-menu";
+import { siteConfig } from "@/lib/site-config";
 
 /**
- * Global fixed navigation. A Server Component — it has no state, so it costs
- * nothing on the client.
+ * Global fixed navigation.
+ *
+ * Still a Server Component. The header, the scrim and the brand are static, and
+ * the brand is handed to `SiteMenu` as a prop rather than rendered inside it —
+ * so the one interactive piece is the only piece that ships any JavaScript.
+ *
+ * `SiteMenu` owns the row itself, because the row is `mix-blend-difference` and
+ * the panel that slides in below `sm` must not be: they have to be siblings,
+ * and something has to render both.
  *
  * Sits at z-40: above the hero content (z-10) but below the hero's loader veil
  * (z-50), so the nav is revealed as the veil wipes up rather than sitting on
@@ -19,38 +27,16 @@ export default function SiteNav() {
         className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-transparent"
       />
 
-      {/* `mix-blend-difference` instead of a fixed colour: the page now scrolls
-          a light slab (Chapter .02) under a nav that used to only ever sit on
-          the void, and inverting against the backdrop keeps it legible on both
-          without a scroll listener swapping classes.
-
-          Both, and only both. Difference against Chapter .05's acid sends ink
-          to a hard blue, so that ground is the one case handled by hand: the
-          section declares `data-ground`, `site-ground.tsx` stamps it on the
-          root, and `globals.css` turns the blending off and the type void. */}
-      <div
-        data-nav
-        className={`relative flex items-start justify-between p-5 mix-blend-difference md:p-8 ${META_TYPE}`}
-      >
-        <Link href="/" className="transition-colors hover:text-acid">
-          {siteConfig.brand}
-          <span data-nav-dot className="text-acid">
-            .
-          </span>
-        </Link>
-
-        <nav aria-label="Main" className="hidden gap-7 sm:flex">
-          {siteConfig.nav.map((item) => (
-            <a
-              key={item.label}
-              href={item.href}
-              className="transition-colors hover:text-acid"
-            >
-              {item.label}
-            </a>
-          ))}
-        </nav>
-      </div>
+      <SiteMenu
+        brand={
+          <Link href="/" className="transition-colors hover:text-acid">
+            {siteConfig.brand}
+            <span data-nav-dot className="text-acid">
+              .
+            </span>
+          </Link>
+        }
+      />
     </header>
   );
 }

@@ -253,6 +253,7 @@ export default function TechStack({ tools }: TechStackProps) {
   return (
     <div
       ref={wrapperRef}
+      id="tech"
       data-chapter=".03"
       data-chapter-name="Stack"
       className="relative z-30 h-[460svh] w-full"
@@ -281,7 +282,6 @@ export default function TechStack({ tools }: TechStackProps) {
 
       <section
         ref={sectionRef}
-        id="tech"
         className="sticky top-0 h-svh w-full overflow-hidden bg-void"
       >
         {/* Never display:none — a hidden node would not trigger the font load. */}

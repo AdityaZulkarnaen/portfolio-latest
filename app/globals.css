@@ -343,6 +343,22 @@ html[data-ground-top="acid"] [data-nav] a:hover {
   opacity: 0.55;
 }
 
+/* Same trap, one step further in: the menu marks the section you are in with
+   acid, and Chapter .05 *is* acid — so on that ground the current link would be
+   the one link you cannot see, which is precisely backwards.
+
+   Everything goes void there, and the distinction is carried by weight of ink
+   instead of by hue: the rest of the menu steps back to 55%, which is the same
+   move the rail makes with its inactive ticks. */
+html[data-ground-top="acid"] [data-nav] a[data-active="true"] {
+  color: var(--color-void);
+  opacity: 1;
+}
+
+html[data-ground-top="acid"] [data-nav] a[data-active="false"] {
+  opacity: 0.55;
+}
+
 html[data-ground-top="acid"] [data-nav-dot] {
   color: var(--color-void);
 }
