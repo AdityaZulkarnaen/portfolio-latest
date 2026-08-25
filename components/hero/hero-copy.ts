@@ -6,7 +6,7 @@ export const heroCopy = {
   surname: "ZULKARNAEN",
   /** The real, accessible heading. Visually hidden; the wordmark is decorative. */
   heading: "Aditya Zulkarnaen — Creative Frontend Developer",
-  eyebrow: "Chapter .01 Currents ---",
+  eyebrow: "Chapter .01 Intro ---",
   tagline: [
     "Passionate developer who excels in crafting scalable architectures and thrives under pressure, converting complex technical bottlenecks into seamless, scalable, production-ready systems.",
   ],
@@ -15,7 +15,7 @@ export const heroCopy = {
   hint: "MOVE THE MASS / CLICK TO DISPLACE",
   scrollCue: "SCROLL TO DISSOLVE",
   /** The readout narrates the field settling out of chaos into laminar flow. */
-  signalLabel: "Resolving",
-  signalLocked: "LAMINAR",
+  signalLabel: "Loading",
+  signalLocked: "Loaded",
   loaderLabel: "INITIALISING",
 } as const;

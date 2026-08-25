@@ -39,7 +39,7 @@ import type { Experience, Work } from "./types";
  * `app/api/revalidate/route.ts` makes edits appear within seconds; this only
  * matters if the webhook is misconfigured or Sanity's delivery fails.
  */
-const REVALIDATE_SECONDS = 3600;
+const REVALIDATE_SECONDS = 1;
 
 /**
  * `cache` memoizes per request, so the home page and `generateMetadata` on a

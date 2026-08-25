@@ -46,10 +46,10 @@ export default function TechHud({ barRef, valueRef }: TechHudProps) {
             000%
           </span>
         </p>
-        <p data-tech-meta className="flex items-center gap-2 md:justify-end">
+        {/* <p data-tech-meta className="flex items-center gap-2 md:justify-end">
           <span className="size-1.5 rounded-full bg-acid" />
           {techCopy.seamRight}
-        </p>
+        </p> */}
       </div>
     </div>
   );

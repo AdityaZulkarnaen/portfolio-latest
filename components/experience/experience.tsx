@@ -8,7 +8,7 @@ import type { Experience as ExperienceEntry } from "@/lib/content/types";
 import { experienceCopy } from "./experience-copy";
 
 /** Slabs the chapter reaches up with, matching Chapter .02's takeover. */
-const SLATS = 3;
+const SLATS = 4;
 
 type ExperienceProps = {
   /**

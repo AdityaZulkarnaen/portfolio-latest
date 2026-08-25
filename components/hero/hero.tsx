@@ -332,7 +332,7 @@ export default function Hero() {
     <div
       ref={wrapperRef}
       data-chapter=".01"
-      data-chapter-name="Currents"
+      data-chapter-name="Intro"
       className="relative h-[200svh] w-full"
     >
       <section
