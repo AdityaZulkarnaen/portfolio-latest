@@ -19,6 +19,15 @@ const nextConfig: NextConfig = {
   experimental: {
     // drei re-exports hundreds of modules and is not in Next's default list.
     optimizePackageImports: ["@react-three/drei"],
+    serverActions: {
+      /**
+       * The contact form sends three short strings; the default ceiling is a
+       * megabyte. Nothing here needs more than this, and a limit the framework
+       * enforces is one reached before any of our own code runs — which is the
+       * only place a size limit is worth anything.
+       */
+      bodySizeLimit: "64kb",
+    },
   },
 };
 

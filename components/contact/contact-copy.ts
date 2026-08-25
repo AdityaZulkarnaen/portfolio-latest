@@ -33,6 +33,10 @@ export const contactCopy = {
   errorBody: "The message itself is the one part I cannot guess.",
   errorTooLong: "That is longer than this field takes.",
   errorSend: "That did not get through. Try again in a moment.",
+  errorLinks: "Too many links for a first message. Tell me in words.",
+  /** Minutes, already rounded — the caller does the arithmetic, not the copy. */
+  errorTooMany: (minutes: number) =>
+    `That is a few messages in a row. Try again in about ${minutes} minute${minutes === 1 ? "" : "s"}.`,
 
   /**
    * The honeypot's field name. Plausible enough that a bot filling every input
@@ -41,6 +45,12 @@ export const contactCopy = {
   trapName: "company",
   trapLabel: "Company — leave this empty",
 
+  /**
+   * Field name for the time trap. Written by the form from the visitor's first
+   * keystroke, and read by the action as "did anybody actually type this".
+   */
+  elapsedName: "elapsed",
+
   seamLeft: "CHAPTER .06 // CONTACT",
-  hint: "REPLIES COME FROM A HUMAN",
+  hint: "",
 } as const;

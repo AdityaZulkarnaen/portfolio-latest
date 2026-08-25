@@ -124,6 +124,18 @@ logs the reason on the server, where whoever owns the site will find it.
 webhook's filter: a message changes no page, and pointing the webhook at it
 would rebuild the site every time somebody said hello.
 
+**What guards it, and what does not.** The long note at the top of
+`app/actions/contact.ts` is the real answer; the short one is that there is no
+SQL and no query built from anything a visitor typed, so injection has no
+surface here — the controls that do matter are a honeypot, a time trap, a rate
+limit and a link-count heuristic, plus the body cap in `next.config.ts` and
+Next's own Origin check on every Server Action.
+
+The rate limit in `lib/rate-limit.ts` is **in memory**. It resets on every
+deploy and every cold start, and two instances mean two windows. That is the
+honest trade for a portfolio form, and `check()` is the whole surface: moving to
+Upstash or Vercel KV means rewriting that one file.
+
 ### Layout fields
 
 The works grid is a **wrapped row, not a twelve-column composition**. Tiles take

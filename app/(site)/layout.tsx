@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import SiteFooter from "@/components/site-footer";
 import SiteGround from "@/components/site-ground";
 import SiteNav from "@/components/site-nav";
 import SiteScroll from "@/components/site-scroll";
@@ -37,6 +38,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             rather than only the pages that happen to contain the hero. */}
         <SiteSmoothScroll />
         {children}
+        {/* Under every page, not inside one. It is the only chrome that brings
+            its own ground, so it declares `data-ground` like a chapter does. */}
+        <SiteFooter />
       </body>
     </html>
   );

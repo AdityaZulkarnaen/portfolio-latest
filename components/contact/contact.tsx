@@ -36,6 +36,27 @@ export default function Contact() {
 
   const [state, action] = useActionState(sendMessage, CONTACT_INITIAL);
 
+  /**
+   * The time trap's clock: when somebody first touched this form.
+   *
+   * A hidden field carries the elapsed milliseconds, rewritten on every input
+   * event so it is current whenever the form is posted. The server treats a
+   * submission with no human time behind it as automated. It is forgeable —
+   * anything the client sets is — and it is not trying to be proof: it costs
+   * one DOM write per keystroke and catches the fetch-fill-post bots that make
+   * up nearly all of it. The layers that do not depend on the client are the
+   * rate limit and the honeypot.
+   */
+  const startedAt = useRef(0);
+  const elapsedRef = useRef<HTMLInputElement>(null);
+
+  const stampInteraction = () => {
+    if (startedAt.current === 0) startedAt.current = Date.now();
+    if (elapsedRef.current) {
+      elapsedRef.current.value = String(Date.now() - startedAt.current);
+    }
+  };
+
   // The takeover, and the same rise the other chapters open with.
   useGSAP(
     () => {
@@ -89,7 +110,13 @@ export default function Contact() {
   // Keyed on `attempt` so a second identical result still counts as news.
   useEffect(() => {
     if (state.status === "idle") return;
-    if (state.status === "sent") formRef.current?.reset();
+    if (state.status === "sent") {
+      formRef.current?.reset();
+      // The clock restarts with the form. Without this a second message
+      // inherits the first one's elapsed time and skips the trap entirely.
+      startedAt.current = 0;
+      if (elapsedRef.current) elapsedRef.current.value = "0";
+    }
     noticeRef.current?.focus();
   }, [state.status, state.attempt]);
 
@@ -160,6 +187,7 @@ export default function Contact() {
           <form
             ref={formRef}
             action={action}
+            onInput={stampInteraction}
             aria-label={contactCopy.formLabel}
             className="max-w-[36rem] md:col-span-7 md:col-start-6"
           >
@@ -238,6 +266,13 @@ export default function Contact() {
                 autoComplete="off"
               />
             </div>
+
+            <input
+              ref={elapsedRef}
+              type="hidden"
+              name={contactCopy.elapsedName}
+              defaultValue="0"
+            />
 
             <div className="mt-10">
               <Submit sent={state.status === "sent"} />

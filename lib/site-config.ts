@@ -31,6 +31,41 @@ export const siteConfig = {
 export type NavItem = (typeof siteConfig.nav)[number];
 
 /**
+ * The footer, which stands under every page.
+ *
+ * `href: ""` means "not filled in yet", and `site-footer.tsx` leaves those out
+ * rather than rendering a link that goes nowhere — the same rule the nav
+ * follows. Paste a profile URL and the row appears.
+ */
+export const footerConfig = {
+  /** The surname, set enormous. The wordmark up top is the full name. */
+  wordmark: "ZulkarnaeN",
+  tagline: [
+    { text: "Transforming ", strong: false },
+    { text: "real-world", strong: true },
+    { text: " challenges into impactful digital ", strong: false },
+    { text: "solutions", strong: true },
+    { text: ". Driven by ", strong: false },
+    { text: "engineering excellence", strong: true },
+    { text: " and a ", strong: false },
+    { text: "commitment", strong: true },
+    { text: " to meaningful ", strong: false },
+    { text: "innovation", strong: true },
+    { text: ".", strong: false },
+  ],
+  social: [
+    // Derived from the git author on this repo. Worth a look before it ships.
+    { label: "Github", href: "https://github.com/AdityaZulkarnaen" },
+    { label: "Instagram", href: "https://www.instagram.com/adlkyzkrnn/" },
+    { label: "Linkedin", href: "https://www.linkedin.com/in/aditya-zulkarnaen-7596142a8/" },
+    { label: "Spotify", href: "https://open.spotify.com/user/76p6n2lekwfklqm77tt0b6h85?si=9d3c1630f89045e8" },
+  ],
+  /** Rendered as `© <year> <this>`; the year is taken from the clock. */
+  rights: "Aditya Lucky Zulkarnaen. All rights reserved.",
+  colophon: "adityazulkarnaen083@gmail.com",
+} as const;
+
+/**
  * Shared monospace label treatment. `META_TYPE_BASE` carries everything except
  * the colour, so sections that invert the ground (Chapter .02 sits on the slab)
  * can pick their own without fighting utility order.
