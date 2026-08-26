@@ -8,7 +8,7 @@
 import { useEffect, useMemo, useRef, type RefObject } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import type { LogoAtlas } from "@/lib/build-logo-atlas";
+import type { LogoAtlas } from "./atlas-texture";
 import { mulberry32 } from "@/lib/rng";
 import { tunnelFragmentShader } from "./shaders/tunnel.frag";
 import { tunnelVertexShader } from "./shaders/tunnel.vert";

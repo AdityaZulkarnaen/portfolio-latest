@@ -21,10 +21,23 @@ export async function waitForFont(fontFamily: string, weight = 900): Promise<voi
   if (typeof document === "undefined" || !("fonts" in document)) return;
   const primary = fontFamily.split(",")[0]?.trim() ?? fontFamily;
   try {
-    await document.fonts.load(`${weight} 200px ${primary}`);
+    const faces = await document.fonts.load(`${weight} 200px ${primary}`);
+    // Resolved the face we actually asked for, so stop here.
+    //
+    // `document.fonts.ready` used to be awaited unconditionally, and it is a
+    // much bigger promise than it looks: it resolves when *every* font in the
+    // document has settled. The hero's veil hangs off this call, so the
+    // homepage was holding a full-screen black panel until BlurWeb — a 66KB
+    // TTF, `display: "block"`, used by nothing above the fold — had finished
+    // downloading, along with both Geist faces. The wordmark's own face is the
+    // only one this function's callers care about; the rest are somebody
+    // else's problem and must not be on this critical path.
+    if (faces.length > 0) return;
   } catch {
     // A quirky family string shouldn't block the hero; fonts.ready still helps.
   }
+  // Either the family did not resolve or the load threw. `ready` is the
+  // fallback, and it is bounded — worst case it is the old behaviour.
   await document.fonts.ready;
 }
 

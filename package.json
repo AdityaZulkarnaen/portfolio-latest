@@ -10,7 +10,10 @@
     "texture": "node scripts/gen-wave-texture.mjs",
     "sanity:seed": "node scripts/seed-sanity.mjs",
     "sanity:cors": "sanity cors add http://localhost:3000 --credentials",
-    "sanity:typegen": "sanity schema extract && sanity typegen generate"
+    "sanity:typegen": "sanity schema extract && sanity typegen generate",
+    "budget": "node scripts/bundle-budget.mjs",
+    "budget:check": "node scripts/bundle-budget.mjs --check",
+    "icon": "node scripts/gen-icon.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",

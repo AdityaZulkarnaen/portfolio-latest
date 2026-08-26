@@ -11,6 +11,10 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
+    // A value import of a type-only symbol is invisible in review and can drag
+    // a whole library into an eager bundle. This makes the distinction explicit
+    // at the syntax level, which is what the three.js lint guard relies on.
+    "verbatimModuleSyntax": true,
     "jsx": "react-jsx",
     "incremental": true,
     "plugins": [

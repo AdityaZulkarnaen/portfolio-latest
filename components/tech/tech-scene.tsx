@@ -1,15 +1,17 @@
 "use client";
 
-import { useState, type RefObject } from "react";
+import { useEffect, useMemo, useState, type RefObject } from "react";
 import { Canvas } from "@react-three/fiber";
 import { PerformanceMonitor } from "@react-three/drei";
-import type { LogoAtlas } from "@/lib/build-logo-atlas";
+import type { LogoSheet } from "@/lib/build-logo-atlas";
+import { toAtlasTexture } from "./atlas-texture";
 import CodeTag from "./code-tag";
 import LogoTunnel from "./logo-tunnel";
 import type { TechMotion } from "./tech-motion";
 
 export type TechSceneProps = {
-  atlas: LogoAtlas;
+  /** Pixels, not a texture. The upload happens here — see `atlas-texture.ts`. */
+  sheet: LogoSheet;
   motionRef: RefObject<TechMotion>;
   count: number;
   pointerEnabled: boolean;
@@ -20,7 +22,7 @@ export type TechSceneProps = {
 };
 
 export default function TechScene({
-  atlas,
+  sheet,
   motionRef,
   count,
   pointerEnabled,
@@ -29,6 +31,14 @@ export default function TechScene({
   onReady,
 }: TechSceneProps) {
   const [maxDpr, setMaxDpr] = useState(1.75);
+
+  // The upload, and its disposal, both belong to this component now. They used
+  // to live in `tech-stack.tsx`, which is what dragged three into the eager
+  // homepage bundle; keeping them together here is also what guarantees the
+  // texture outlives exactly as long as the scene that samples it.
+  const atlas = useMemo(() => toAtlasTexture(sheet), [sheet]);
+
+  useEffect(() => () => atlas.texture.dispose(), [atlas]);
 
   return (
     <Canvas

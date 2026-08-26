@@ -1,5 +1,3 @@
-import * as THREE from "three";
-
 export type AtlasTile = {
   /** Drawn into the cell when there is no `src`, or when the artwork fails to load. */
   label: string;
@@ -21,8 +19,17 @@ export type AtlasTile = {
   mono?: string;
 };
 
-export type LogoAtlas = {
-  texture: THREE.CanvasTexture;
+/**
+ * The finished sprite sheet, as pixels — deliberately *not* as a GPU texture.
+ *
+ * This module is imported by `tech-stack.tsx`, which is a plain client
+ * component on the homepage. Anything it pulls in lands in the eager bundle, so
+ * the three.js half of this job lives in `components/tech/atlas-texture.ts`
+ * instead, behind the `ssr: false` boundary that the scene already sits behind.
+ * The seam is worth 370KB of script the homepage no longer parses.
+ */
+export type LogoSheet = {
+  canvas: HTMLCanvasElement;
   /** [columns, rows] — the shader needs both to turn a tile index into a UV. */
   grid: [number, number];
   count: number;
@@ -203,7 +210,7 @@ export async function buildLogoAtlas(
   tiles: readonly AtlasTile[],
   fontFamily: string,
   tileSize = 256,
-): Promise<LogoAtlas | null> {
+): Promise<LogoSheet | null> {
   const count = tiles.length;
   const cols = Math.ceil(Math.sqrt(count));
   const rows = Math.ceil(count / cols);
@@ -283,23 +290,8 @@ export async function buildLogoAtlas(
     ctx.restore();
   }
 
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  // Without mipmaps plus anisotropy the far end of the tunnel is a field of
-  // aliasing sparkle — the tiles are minified to a few pixels down there.
-  texture.generateMipmaps = true;
-  texture.minFilter = THREE.LinearMipmapLinearFilter;
-  texture.magFilter = THREE.LinearFilter;
-  // Cells are addressed by UV offset, so bleeding across an edge would sample
-  // the neighbouring logo. Clamp, and keep a transparent margin in each cell.
-  texture.wrapS = THREE.ClampToEdgeWrapping;
-  texture.wrapT = THREE.ClampToEdgeWrapping;
-  // Load-bearing. Three flips canvas textures on upload by default, which puts
-  // row 0 of the sheet at the bottom of UV space — the labels come out upside
-  // down and every tile index picks the wrong row. The shader does the
-  // top-down cell mapping itself, so the upload must not touch it.
-  texture.flipY = false;
-  texture.needsUpdate = true;
-
-  return { texture, grid: [cols, rows], count };
+  // Handed back as pixels. Everything that makes this a GPU texture — colour
+  // space, mipmaps, wrapping, and the `flipY` that the cell addressing depends
+  // on — is in `toAtlasTexture`, which is the only half that needs three.
+  return { canvas, grid: [cols, rows], count };
 }

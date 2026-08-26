@@ -63,31 +63,58 @@ export default function FeaturedWorks({ works, total }: FeaturedWorksProps) {
         return;
       }
 
-      const apply = (card: HTMLElement) => {
-        const rect = card.getBoundingClientRect();
+      /**
+       * One read pass, then one write pass. The split is the whole point.
+       *
+       * Reading `getBoundingClientRect` forces the browser to flush layout;
+       * writing `--peel` invalidates it again. Interleaved — read tile, write
+       * tile, read tile, write tile — that is one forced synchronous layout
+       * *per tile, per frame*, which is what a profiler reports as a long
+       * forced reflow. Separating the phases means layout is computed once for
+       * the whole grid and then nothing reads it again until the next frame, so
+       * the cost stops scaling with the number of tiles.
+       *
+       * The arithmetic below is unchanged, and so is the reason for it: the
+       * curl comes from where a tile actually is, not from a scrubbed range,
+       * because the last row cannot reach the centre of a short viewport.
+       */
+      const peels = new Float64Array(cards.length);
+
+      const apply = () => {
         const vh = window.innerHeight;
-        const middle = rect.top + rect.height / 2;
-        const peel = (middle - vh * SETTLE) / (vh * REACH);
-        // Clamped at both ends: above the settle line a tile is simply flat,
-        // and stays flat, rather than curling the other way as it leaves.
-        card.style.setProperty("--peel", String(Math.min(1, Math.max(0, peel))));
+
+        for (let i = 0; i < cards.length; i++) {
+          const rect = cards[i].getBoundingClientRect();
+          const middle = rect.top + rect.height / 2;
+          const peel = (middle - vh * SETTLE) / (vh * REACH);
+          // Clamped at both ends: above the settle line a tile is simply flat,
+          // and stays flat, rather than curling the other way as it leaves.
+          peels[i] = Math.min(1, Math.max(0, peel));
+        }
+
+        for (let i = 0; i < cards.length; i++) {
+          cards[i].style.setProperty("--peel", String(peels[i]));
+        }
       };
 
-      cards.forEach((card) => {
-        ScrollTrigger.create({
-          trigger: card,
-          // The widest range the tile is on screen for. The curl itself is not
-          // derived from this range — it only decides when to stop asking.
-          start: "top bottom",
-          end: "bottom top",
-          onUpdate: () => apply(card),
-          onRefresh: () => apply(card),
-        });
-        // A tile already past the settle line on load must start flat, and a
-        // tile below the fold must start curled; neither gets an onUpdate
-        // until the next scroll.
-        apply(card);
+      ScrollTrigger.create({
+        // The grid, not each tile. N triggers firing N read/write pairs in one
+        // batch was the thrash; one trigger driving one batched pass is the
+        // same coverage — the range below is the union of every tile's — for a
+        // single layout flush.
+        trigger: rootRef.current,
+        // The widest range the grid is on screen for. The curl itself is not
+        // derived from this range — it only decides when to stop asking.
+        start: "top bottom",
+        end: "bottom top",
+        onUpdate: apply,
+        onRefresh: apply,
       });
+
+      // A tile already past the settle line on load must start flat, and a tile
+      // below the fold must start curled; neither gets an onUpdate until the
+      // next scroll.
+      apply();
 
       gsap.fromTo(
         rises,

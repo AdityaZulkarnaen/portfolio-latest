@@ -24,6 +24,40 @@ import { createHeroMotion, useFieldQuality } from "./hero-motion";
  */
 const SCRAMBLE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/[]{}#*+=-_.:";
 
+/** Hard ceiling on the veil, whatever the scene and the webfont are doing. */
+const REVEAL_CEILING_MS = 2500;
+
+/** The counter's run, in seconds: the floor the intro is never shorter than. */
+const INTRO_FLOOR_S = 1.1;
+/** The same floor for a visitor who is plainly not on a fast pipe. */
+const INTRO_FLOOR_SLOW_S = 0.35;
+
+/**
+ * Whether to shorten the intro rather than spend it.
+ *
+ * The counter is a deliberate beat, not a spinner — it is there so the reveal
+ * lands rather than flickers. But it is a beat spent on a black screen, and on
+ * a metered or slow connection the visitor has already spent several seconds
+ * looking at one. Save-Data is an explicit request to stop spending their
+ * bytes and their time; `effectiveType` is the estimate for everyone else.
+ *
+ * Both live behind `navigator.connection`, which Safari and Firefox do not
+ * implement — the `?.` chain there resolves to the full floor, which is the
+ * right default for an unknown connection.
+ */
+function prefersShortIntro(): boolean {
+  if (typeof navigator === "undefined") return false;
+  const conn = (
+    navigator as Navigator & {
+      connection?: { saveData?: boolean; effectiveType?: string };
+    }
+  ).connection;
+  if (!conn) return false;
+  return (
+    conn.saveData === true || /(^|-)(2g|3g)$/.test(conn.effectiveType ?? "")
+  );
+}
+
 /** Shared between the two wordmark lines so they cannot drift apart. */
 const WORDMARK_TYPE =
   "block font-display text-[clamp(2.5rem,8.5vw,7.5rem)] font-black uppercase leading-[0.86] tracking-[-0.045em]";
@@ -81,6 +115,29 @@ export default function Hero() {
   const [sceneReady, setSceneReady] = useState(false);
   const [minElapsed, setMinElapsed] = useState(false);
   const [inView, setInView] = useState(true);
+  const [expired, setExpired] = useState(false);
+
+  /**
+   * The ceiling on the whole reveal gate.
+   *
+   * `revealed` below is a conjunction of three conditions, one of which
+   * (`sceneReady`) depends on a WebGL context compiling shaders and drawing a
+   * frame. On a throttled phone that is seconds, and until it happens the
+   * visitor is looking at an opaque near-black panel — which is exactly what a
+   * lab run measures as Largest Contentful Paint and, worse, as Speed Index,
+   * since the screen makes no visual progress at all for the duration.
+   *
+   * The intro is worth waiting a moment for. It is not worth waiting
+   * indefinitely for, and the failure it guards against is real: a device that
+   * never finishes the first frame otherwise never sees the page. So the veil
+   * lifts regardless once this expires — the scene fades in behind the content
+   * whenever it does arrive, which is a slightly less choreographed opening
+   * rather than a broken one.
+   */
+  useEffect(() => {
+    const id = window.setTimeout(() => setExpired(true), REVEAL_CEILING_MS);
+    return () => window.clearTimeout(id);
+  }, []);
 
   /**
    * Whether the document was already scrolled past the hero when this mounted.
@@ -218,7 +275,7 @@ export default function Hero() {
       const proxy = { value: 0 };
       gsap.to(proxy, {
         value: 1,
-        duration: 1.1,
+        duration: prefersShortIntro() ? INTRO_FLOOR_SLOW_S : INTRO_FLOOR_S,
         ease: "power2.inOut",
         onUpdate: () => {
           const percent = Math.round(proxy.value * 100);
@@ -244,8 +301,12 @@ export default function Hero() {
   // frame, never reports itself ready, and the veil waits on a condition that
   // can never come true. That is exactly what a mid-page reload produces: a
   // black screen that stays black until the visitor scrolls back to the hero.
+  //
+  // `expired` is the disjunct, deliberately outside the conjunction: it is not
+  // another readiness signal to be waited on alongside the others, it is the
+  // statement that we have waited long enough and are opening anyway.
   const revealed =
-    fontsReady && (!webgl || sceneReady || !inView) && minElapsed;
+    expired || (fontsReady && (!webgl || sceneReady || !inView) && minElapsed);
 
   // Intro choreography. The first pass (revealed === false) only sets the
   // hidden start state, so nothing can flash between the veil lifting and the

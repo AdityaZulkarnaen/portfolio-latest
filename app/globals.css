@@ -1,4 +1,22 @@
-@import "tailwindcss";
+/*
+ * `source(none)` switches off Tailwind v4's automatic source detection, and the
+ * `@source` lines below put it back deliberately.
+ *
+ * Detection scans the whole project minus what git ignores, which here means it
+ * also reads `sanity/` (Studio schemas that never render on the site),
+ * `scripts/`, and — worst of it — `lib/content/seed.json`, where any string that
+ * happens to look like a utility becomes one. This stylesheet is the single
+ * render-blocking resource on every page, so anything generated for a file the
+ * site does not ship is bytes in front of first paint for nothing.
+ *
+ * Add a directory here if a new one starts holding class names. Forgetting to
+ * is a visible bug (missing styles), not a silent one.
+ */
+@import "tailwindcss" source(none);
+
+@source "../app/(site)";
+@source "../components";
+@source "../lib/site-config.ts";
 
 @theme {
   --color-void: #08080a;

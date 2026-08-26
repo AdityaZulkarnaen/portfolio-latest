@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { gsap, killScrollTriggersIn, ScrollTrigger, useGSAP } from "@/lib/gsap";
-import { buildLogoAtlas, type LogoAtlas } from "@/lib/build-logo-atlas";
+import { buildLogoAtlas, type LogoSheet } from "@/lib/build-logo-atlas";
 import { waitForFont } from "@/lib/sample-text-to-points";
 import { useFinePointer, useReducedMotion } from "@/lib/use-media-query";
 import { useWebGLSupport } from "@/lib/use-webgl-support";
@@ -59,9 +59,84 @@ export default function TechStack({ tools }: TechStackProps) {
   const finePointer = useFinePointer();
   const webgl = useWebGLSupport();
 
-  const [atlas, setAtlas] = useState<LogoAtlas | null>(null);
+  const [sheet, setSheet] = useState<LogoSheet | null>(null);
   const [count, setCount] = useState(0);
   const [inView, setInView] = useState(false);
+  const [warm, setWarm] = useState(false);
+  const [urgent, setUrgent] = useState(false);
+  const startedRef = useRef(false);
+
+  /**
+   * When to build the sprite sheet — a question with three wrong answers and
+   * one right one.
+   *
+   * The work is not small: roughly twenty image decodes, a `getImageData` scan
+   * per mark to trim it, a composite up to 1920x1536, and then a second WebGL2
+   * context with its own shader compile and a ~16MB mipmapped upload.
+   *
+   * At mount is wrong. That is what the site used to do, and it put all of the
+   * above in direct competition with the hero — the one canvas the visitor is
+   * actually looking at, and the one whose loader cannot lift until its own
+   * scene reports a frame. It is most of how first load reached 27.9s of
+   * blocking time.
+   *
+   * Purely on approach is also wrong, and was the first attempt at fixing it:
+   * a visitor who flicks straight down arrives before an observer keyed to the
+   * viewport has any lead time, and watches the chapter assemble itself. The
+   * empty state is not a loader — the canvas simply is not mounted yet — so
+   * what they see is a heading over bare void.
+   *
+   * The right window is neither: it is the stretch *after* first paint, while
+   * the visitor is reading the hero and Chapter .02. That is several seconds of
+   * wall clock during which the main thread has nothing to do and the critical
+   * path is already behind us. `warm` claims it.
+   *
+   * `urgent` is the escape hatch for the fast scroller, and it deliberately
+   * skips the idle queue: if someone is two viewports away the work is no
+   * longer speculative, and waiting politely for an idle slot is exactly the
+   * wrong instinct. Whichever fires first wins; both are one-shot.
+   */
+  useEffect(() => {
+    let handle = 0;
+    let cancelled = false;
+
+    // `load` rather than a timer: it is the browser telling us the critical
+    // resources are done, which is the thing a timer would only be guessing at.
+    const arm = () => {
+      if (cancelled) return;
+      handle =
+        typeof requestIdleCallback === "function"
+          ? requestIdleCallback(() => setWarm(true), { timeout: 3000 })
+          : window.setTimeout(() => setWarm(true), 300);
+    };
+
+    if (document.readyState === "complete") arm();
+    else window.addEventListener("load", arm, { once: true });
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener("load", arm);
+      if (typeof cancelIdleCallback === "function") cancelIdleCallback(handle);
+      else window.clearTimeout(handle);
+    };
+  }, []);
+
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        setUrgent(true);
+        observer.disconnect();
+      },
+      // Two viewports of lead. The section is 460svh tall and sticky, so this
+      // is generous in wall-clock terms even at a hard flick.
+      { rootMargin: "200% 0px" },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   // Rasterise the stack into one sprite sheet. The family is read off a live
   // node rather than imported, so the atlas is drawn with exactly the face the
@@ -70,7 +145,21 @@ export default function TechStack({ tools }: TechStackProps) {
   useEffect(() => {
     // No tools means no sheet: `buildLogoAtlas` would size a canvas to zero
     // cells, and the tunnel below already renders nothing without an atlas.
-    if (!webgl || tools.length === 0) return;
+    if (!(warm || urgent) || !webgl || tools.length === 0) return;
+
+    // Exactly one build, ever.
+    //
+    // The trigger is a disjunction of two independent one-shots, so the second
+    // one firing after the first re-runs this effect: cleanup cancels the build
+    // that was already most of the way through, and an identical one starts
+    // from zero. On a fast scroll — the case `urgent` exists for — that is
+    // precisely when it would happen and precisely when it costs most.
+    //
+    // The flag is set here rather than beside the state, so that the ordinary
+    // hydration sequence (`webgl` false, then true) still reaches the build.
+    if (startedRef.current) return;
+    startedRef.current = true;
+
     let cancelled = false;
 
     (async () => {
@@ -92,22 +181,22 @@ export default function TechStack({ tools }: TechStackProps) {
       // Read once, here: the instanced buffers are allocated against this and
       // must not change on resize.
       setCount(resolveLogoCount());
-      setAtlas(next);
+      setSheet(next);
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [webgl, tools]);
-
-  useEffect(() => {
-    return () => {
-      atlas?.texture.dispose();
-    };
-  }, [atlas]);
+    // `urgent` arriving after `warm` must not re-run this — the guard above is
+    // a disjunction and the effect is idempotent only because of the `sheet`
+    // state it writes, so keep both in the deps and let the early return do it.
+  }, [warm, urgent, webgl, tools]);
 
   // Gates the render loop. Two WebGL contexts now live on this page, and this
   // is what keeps only one of them drawing at a time.
+  //
+  // Disposal of the uploaded texture is `tech-scene.tsx`'s job, not this
+  // component's — what lives here is pixels, which the GC handles.
   useEffect(() => {
     const el = sectionRef.current;
     if (!el) return;
@@ -299,10 +388,10 @@ export default function TechStack({ tools }: TechStackProps) {
           className="pointer-events-none absolute inset-0 bg-[radial-gradient(46%_38%_at_50%_50%,rgba(225,255,0,0.07),transparent_70%)]"
         />
 
-        {webgl && atlas && count > 0 ? (
+        {webgl && sheet && count > 0 ? (
           <div aria-hidden className="absolute inset-0">
             <TechCanvas
-              atlas={atlas}
+              sheet={sheet}
               motionRef={motionRef}
               count={count}
               pointerEnabled={finePointer}
