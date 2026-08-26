@@ -58,6 +58,7 @@ export const worksQuery = defineQuery(`
     "featured": coalesce(featured, false),
     live,
     repo,
+    "updatedAt": _updatedAt,
     ${COVER}
   }
 `);

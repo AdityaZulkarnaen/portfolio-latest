@@ -3,13 +3,31 @@ import BackLink from "@/components/works/back-link";
 import BlueprintGrid from "@/components/works/blueprint-grid";
 import WorkCard from "@/components/works/work-card";
 import { worksCopy } from "@/components/works/works-copy";
+import JsonLd from "@/components/json-ld";
 import { getWorks } from "@/lib/content/source";
+import { breadcrumbSchema, pageOpenGraph } from "@/lib/seo";
 import { META_TYPE_BASE } from "@/lib/site-config";
 
+/**
+ * The title is bare — the layout's template appends the name — and the
+ * canonical is spelled out even though it matches the URL being served.
+ *
+ * That is not redundant. `/work`, `/work/`, `/work?ref=anything` and the same
+ * page reached over http are four URLs a crawler can arrive at holding the same
+ * content, and without a canonical it has to guess which one is the real
+ * address. Saying so costs one line per page.
+ */
 export const metadata: Metadata = {
-  title: "All Works — Aditya Zulkarnaen",
+  title: "All Works",
   description:
-    "The full index of projects — everything, not only the selection featured on the homepage.",
+    "The full index of projects by Aditya Zulkarnaen — everything, not only the selection featured on the homepage.",
+  alternates: { canonical: "/work" },
+  openGraph: pageOpenGraph({
+    title: "All Works — Aditya Zulkarnaen",
+    description:
+      "The full index of projects by Aditya Zulkarnaen — everything, not only the selection featured on the homepage.",
+    path: "/work",
+  }),
 };
 
 /**
@@ -25,6 +43,13 @@ export default async function WorkIndexPage() {
 
   return (
     <main className="relative w-full overflow-hidden bg-void">
+      <JsonLd
+        data={breadcrumbSchema([
+          { name: "Home", path: "/" },
+          { name: "Work" },
+        ])}
+      />
+
       {/* <BlueprintGrid /> */}
 
       <div className="relative mx-auto w-full max-w-[110rem] pb-28 pl-5 pr-5 pt-32 sm:pr-[var(--rail-gutter)] md:pb-40 md:pl-8 md:pt-40">

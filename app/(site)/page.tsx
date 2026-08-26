@@ -1,4 +1,5 @@
 import About from "@/components/about/about";
+import JsonLd from "@/components/json-ld";
 import Contact from "@/components/contact/contact";
 import Experience from "@/components/experience/experience";
 import FeaturedWorks from "@/components/works/featured-works";
@@ -11,6 +12,7 @@ import {
   getTools,
   getWorks,
 } from "@/lib/content/source";
+import { personSchema, websiteSchema } from "@/lib/seo";
 
 /**
  * The only place on the homepage that touches Sanity.
@@ -33,6 +35,18 @@ export default async function Home() {
 
   return (
     <main className="w-full">
+      {/* Two blocks, cross-referenced rather than repeated: the `WebSite` names
+          its publisher by the `Person`'s `@id`, and every project page points
+          both its `creator` and its `isPartOf` at the same two ids. That is
+          what lets a crawler read the site as one entity with several pages
+          about it, instead of as a set of pages each asserting a name.
+
+          On the homepage rather than in the layout on purpose — this is where
+          the `Person` actually is. A `ProfilePage` claim on every route,
+          including the project archive, is the kind of over-marking that gets
+          structured data ignored. */}
+      <JsonLd data={[personSchema(about), websiteSchema()]} />
+
       <Hero />
       <About about={about} />
       <TechStack tools={tools} />

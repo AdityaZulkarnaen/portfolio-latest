@@ -81,6 +81,14 @@ export type Work = {
   /** Optional outbound links, rendered on the detail page when present. */
   live?: string;
   repo?: string;
+  /**
+   * When the document was last written, ISO 8601. Nothing renders it — it is
+   * the sitemap's `lastmod`, and the reason it is the document's own timestamp
+   * rather than the build's: a `lastmod` that changes on every deploy tells a
+   * crawler every page changed every deploy, and the usual result is that it
+   * stops believing the field at all. Null on the seed, which has no history.
+   */
+  updatedAt: string | null;
 };
 
 /**

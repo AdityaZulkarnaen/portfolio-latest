@@ -60,6 +60,9 @@ export const seedWorks: Work[] = raw.works.map((work) => ({
   device: work.device as Work["device"],
   width: work.width as Work["width"],
   featured: work.featured,
+  // The seed has no edit history to report, and inventing one would put a
+  // fabricated `lastmod` in the sitemap.
+  updatedAt: null,
 }));
 
 export const seedExperiences: Experience[] = raw.experiences.map((item) => ({

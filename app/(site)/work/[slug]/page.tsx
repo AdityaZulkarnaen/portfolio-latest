@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import JsonLd from "@/components/json-ld";
 import BackLink from "@/components/works/back-link";
 import BlueprintGrid from "@/components/works/blueprint-grid";
 import CoverPlaceholder from "@/components/works/cover-placeholder";
@@ -9,6 +10,7 @@ import WorkBody from "@/components/works/work-body";
 import { worksCopy } from "@/components/works/works-copy";
 import { getWorks } from "@/lib/content/source";
 import { coverSrc } from "@/lib/sanity/image";
+import { breadcrumbSchema, pageOpenGraph, workSchema } from "@/lib/seo";
 import { META_TYPE_BASE } from "@/lib/site-config";
 
 /**
@@ -32,9 +34,46 @@ export async function generateMetadata({
   const work = works.find((item) => item.slug === slug);
   if (!work) return {};
 
+  // The project's own cover, at the ratio the crawlers crop to. A case page
+  // that unfurls as the site's generic card wastes the one thing it has that
+  // the homepage does not: a picture of the thing being described. Falls back
+  // to the generated card when a project has no cover yet, which is what
+  // omitting `images` here does — Next then inherits `opengraph-image`.
+  const cover = work.cover ? coverSrc(work.cover, "hero") : null;
+  const path = `/work/${slug}`;
+
   return {
-    title: `${work.name} — Aditya Zulkarnaen`,
+    title: work.name,
     description: work.summary,
+    alternates: { canonical: path },
+    openGraph: pageOpenGraph({
+      type: "article",
+      title: `${work.name} — Aditya Zulkarnaen`,
+      description: work.summary,
+      path,
+      ...(cover
+        ? {
+            images: [
+              {
+                url: cover,
+                width: 1920,
+                height: 1080,
+                // The project name when the Studio's alt field is empty.
+                // Next drops an `og:image:alt` that is the empty string, which
+                // is the right call for an empty one and the wrong outcome
+                // here: the card then carries a picture nothing describes.
+                alt: work.cover!.alt || work.name,
+              },
+            ],
+          }
+        : {}),
+    }),
+    twitter: {
+      card: "summary_large_image",
+      title: `${work.name} — Aditya Zulkarnaen`,
+      description: work.summary,
+      ...(cover ? { images: [cover] } : {}),
+    },
   };
 }
 
@@ -56,6 +95,21 @@ export default async function WorkDetailPage({
 
   return (
     <main className="relative w-full overflow-hidden bg-void">
+      {/* The project as a `CreativeWork`, plus the trail that turns the grey
+          URL line under a search result into `Home > Work > this project`.
+          Both point at the ids the homepage defines rather than restating who
+          made it. */}
+      <JsonLd
+        data={[
+          workSchema(work, work.cover ? coverSrc(work.cover, "hero") : null),
+          breadcrumbSchema([
+            { name: "Home", path: "/" },
+            { name: "Work", path: "/work" },
+            { name: work.name },
+          ]),
+        ]}
+      />
+
       {/* <BlueprintGrid /> */}
 
       <div className="relative mx-auto w-full max-w-[110rem] pb-28 pl-5 pr-5 pt-32 sm:pr-[var(--rail-gutter)] md:pb-40 md:pl-8 md:pt-40">

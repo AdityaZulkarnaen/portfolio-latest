@@ -179,6 +179,101 @@ the caption does is the point. On Experience, `position` is load-bearing in a
 different way — each card closes under the next one, so the highest position is
 the entry left open at the end of the chapter. Put the current role last.
 
+## SEO
+
+Everything a crawler reads is generated, and it is all built on one value:
+`NEXT_PUBLIC_SITE_URL`, the site's real public origin. Set it before the first
+production deploy. Canonical links, `metadataBase`, the sitemap, robots.txt,
+every Open Graph image URL and every JSON-LD id are absolute URLs derived from
+it, and with it unset the build falls back to Vercel's production hostname and
+then to `http://localhost:3000` — which, shipped, tells Google that the
+canonical copy of every page lives on a machine it cannot reach.
+
+```
+lib/seo.ts                       the origin, shared metadata, JSON-LD builders
+components/json-ld.tsx           one structured-data block, escaped
+app/robots.ts                    /robots.txt
+app/sitemap.ts                   /sitemap.xml, built from Sanity
+app/(site)/opengraph-image.tsx   the 1200x630 card, drawn at build time
+```
+
+What each page carries:
+
+| | |
+| --- | --- |
+| Every page | Canonical URL, description, `og:` and `twitter:` tags, the generated card, `max-image-preview:large` |
+| `/` | `Person` + `WebSite` JSON-LD, built from the live About document |
+| `/work` | `BreadcrumbList` |
+| `/work/[slug]` | `CreativeWork` + `BreadcrumbList`, and the project's own cover as its card |
+
+Three things about this are worth knowing before changing any of it.
+
+**The sitemap is built from the content, not written by hand.** A project added
+in the Studio appears in it on the next revalidation. `lastmod` is each
+document's own `_updatedAt` and never the build clock: build time would mark
+every page as changed on every deploy, and a crawler told that everything
+changed and finding that nothing did learns to ignore the field — so it is worth
+nothing on the day something really did change.
+
+**Preview deployments take themselves out of the index.** On Vercel,
+`VERCEL_ENV=preview` flips robots.txt to a blanket disallow and every page to
+`noindex`. A crawlable preview is a second copy of the site competing with the
+real one for the same queries, and Google is under no obligation to prefer the
+one you meant.
+
+**Per-page `openGraph` replaces the layout's, it does not extend it.** That is
+Next's merge, not a bug, and it is easy to miss because the tags the page cared
+about are all present — only the inherited `og:site_name` and `og:locale`
+quietly vanish. Build the object with `pageOpenGraph()` in `lib/seo.ts` and that
+cannot happen.
+
+### Getting into Google
+
+Being indexable is not the same as being indexed. Nothing below is optional if
+the site is meant to be findable by name, and none of it works before the site
+is live on a real domain.
+
+**1. Deploy with the origin set.** `NEXT_PUBLIC_SITE_URL=https://your-domain`
+in the host's environment variables, then deploy. Confirm before going further:
+`https://your-domain/robots.txt` should name your domain in the `Sitemap:` line,
+and `https://your-domain/sitemap.xml` should list every project URL. If either
+says `localhost`, the variable did not reach the build.
+
+**2. Add the property in Search Console.** <https://search.google.com/search-console>
+→ Add property. Choose **Domain** if you control DNS — it covers `www`, every
+subdomain and both schemes at once. Verify by adding the TXT record it gives you
+at your registrar. If you cannot reach DNS, choose **URL prefix** instead, take
+the `content` value out of the `<meta name="google-site-verification">` tag it
+offers, put it in `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION`, redeploy, then press
+Verify.
+
+**3. Submit the sitemap.** Search Console → Sitemaps → enter `sitemap.xml` →
+Submit. This is what tells Google the site exists at all; without a link from
+somewhere it already crawls, it has no other way to find out.
+
+**4. Ask for the homepage directly.** Search Console → URL Inspection → paste
+the homepage URL → **Request indexing**. Do the same for two or three project
+pages. This is a request and not a command; the queue is usually days, and it is
+normal for it to be a couple of weeks before anything appears.
+
+**5. Give it corroboration.** The `Person` block claims the GitHub, LinkedIn and
+Instagram profiles in `footerConfig.social` belong to the same person. That
+claim is worth much more when it points both ways, so put the site URL in each
+of those profiles. For a name query — "Aditya Zulkarnaen" — those links are most
+of what decides whether this site or someone else's page ranks for it.
+
+**6. Check what you actually shipped.** Paste a project URL into the
+[Rich Results Test](https://search.google.com/test/rich-results) to confirm the
+structured data parses, and into
+[Facebook's Sharing Debugger](https://developers.facebook.com/tools/debug/) or
+LinkedIn's Post Inspector to see the card. Both cache aggressively; re-scrape
+from those tools after changing an image or a title.
+
+Then watch Search Console → Pages over the following weeks. "Crawled — currently
+not indexed" on a new site is normal and usually resolves on its own; "Discovered
+— currently not indexed" for a long time means Google has decided the page is not
+worth fetching, and the answer to that is links and content, never markup.
+
 ## Scripts
 
 | | |
