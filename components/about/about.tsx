@@ -417,6 +417,7 @@ export default function About({ about }: { about: AboutContent }) {
 
               <a
                 href={about.resumeUrl || aboutCopy.resumeHref}
+                target="_blank"
                 className={`group relative inline-flex shrink-0 items-center gap-2 self-start overflow-hidden bg-acid px-4 py-2 md:self-end ${META_TYPE_BASE} text-void`}
               >
                 {/* Fill sweep on hover — the acid stays, the ground inverts. */}

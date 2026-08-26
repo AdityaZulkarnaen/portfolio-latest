@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { baseMetadata } from "@/lib/seo";
-import ReloadToTop from "@/components/reload-to-top";
+import OpenAtTop from "@/components/open-at-top";
 import SiteFooter from "@/components/site-footer";
 import SiteGround from "@/components/site-ground";
 import SiteNav from "@/components/site-nav";
@@ -35,7 +35,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         {/* First thing in the document, and it has to be: it runs while the
             parser is still here, which is before the browser restores the
             scroll position and long before the hero reads it. */}
-        <ReloadToTop />
+        <OpenAtTop />
 
         {/* Before the nav, so the trail passes behind its type rather
             than over it. */}
