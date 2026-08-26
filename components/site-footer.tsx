@@ -1,4 +1,5 @@
 import FooterWordmark from "@/components/footer-wordmark";
+import SiteTexture from "@/components/site-texture";
 import { footerConfig, META_TYPE_BASE } from "@/lib/site-config";
 
 /**
@@ -26,7 +27,10 @@ export default function SiteFooter() {
       // Above Chapter .06 (z-[37]), below the fixed nav (z-40).
       className="relative z-[38] w-full bg-acid text-void"
     >
-      <div className="mx-auto w-full max-w-[110rem] px-5 pb-8 pt-14 sm:pr-[var(--rail-gutter)] md:px-8 md:pb-10 md:pt-20">
+      <SiteTexture className="text-void opacity-[0.07]" />
+
+      {/* `relative`, for the same reason Chapter .06 needs it. */}
+      <div className="relative mx-auto w-full max-w-[110rem] px-5 pb-8 pt-14 sm:pr-[var(--rail-gutter)] md:px-8 md:pb-10 md:pt-20">
         {/* The wordmark, and its echoes.
             Four copies of one word, coincident at rest and scrubbed apart as
             the footer comes in — see `footer-wordmark.tsx`. The only client

@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import JsonLd from "@/components/json-ld";
+import SiteTexture from "@/components/site-texture";
 import BackLink from "@/components/works/back-link";
 import BlueprintGrid from "@/components/works/blueprint-grid";
 import CoverPlaceholder from "@/components/works/cover-placeholder";
@@ -109,6 +110,8 @@ export default async function WorkDetailPage({
           ]),
         ]}
       />
+
+      <SiteTexture className="text-acid opacity-[0.14]" />
 
       {/* <BlueprintGrid /> */}
 

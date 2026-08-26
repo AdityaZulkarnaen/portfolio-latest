@@ -8,6 +8,7 @@ import { META_TYPE_BASE } from "@/lib/site-config";
 import type { Work } from "@/lib/content/types";
 import BlueprintGrid from "./blueprint-grid";
 import WorkCard from "./work-card";
+import SiteTexture from "@/components/site-texture";
 import { worksCopy } from "./works-copy";
 
 /** The line a tile lies flat on, as a fraction of viewport height. */
@@ -115,6 +116,8 @@ export default function FeaturedWorks({ works, total }: FeaturedWorksProps) {
       // never climb over the nav.
       className="relative z-[35] w-full overflow-hidden bg-void"
     >
+      <SiteTexture className="text-acid opacity-[0.14]" />
+
       {/* <BlueprintGrid /> */}
 
       <div className="relative mx-auto w-full max-w-[110rem] pb-28 pl-5 pr-5 pt-24 sm:pr-[var(--rail-gutter)] md:pb-40 md:pl-8 md:pt-32">

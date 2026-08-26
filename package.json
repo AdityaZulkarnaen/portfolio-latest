@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "texture": "node scripts/gen-wave-texture.mjs",
     "sanity:seed": "node scripts/seed-sanity.mjs",
     "sanity:cors": "sanity cors add http://localhost:3000 --credentials",
     "sanity:typegen": "sanity schema extract && sanity typegen generate"

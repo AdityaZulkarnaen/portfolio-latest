@@ -5,8 +5,18 @@ import { useFormStatus } from "react-dom";
 import { gsap, killScrollTriggersIn, useGSAP } from "@/lib/gsap";
 import { useReducedMotion } from "@/lib/use-media-query";
 import { META_TYPE_BASE } from "@/lib/site-config";
-import { CONTACT_INITIAL, sendMessage } from "@/app/actions/contact";
+import { sendMessage, type ContactState } from "@/app/actions/contact";
+import SiteTexture from "@/components/site-texture";
 import { contactCopy } from "./contact-copy";
+
+/**
+ * The state the form starts in.
+ *
+ * Here rather than next to the action, because `app/actions/contact.ts` is a
+ * `"use server"` module and those may export nothing but async functions — an
+ * exported object there is a build error, not a lint warning.
+ */
+const CONTACT_INITIAL: ContactState = { status: "idle", attempt: 0 };
 
 /** Slabs the chapter reaches up with, matching every takeover before it. */
 const SLATS = 4;
@@ -155,7 +165,11 @@ export default function Contact() {
         ))}
       </div>
 
-      <div className="mx-auto w-full max-w-[110rem] pb-24 pl-5 pr-5 pt-24 sm:pr-[var(--rail-gutter)] md:pb-32 md:pl-8 md:pt-32">
+      <SiteTexture className="text-acid opacity-[0.14]" />
+
+      {/* `relative` is load-bearing: the texture above is absolutely positioned
+          and would otherwise paint over this whole column. */}
+      <div className="relative mx-auto w-full max-w-[110rem] pb-24 pl-5 pr-5 pt-24 sm:pr-[var(--rail-gutter)] md:pb-32 md:pl-8 md:pt-32">
         <div className="overflow-hidden">
           <p data-contact-rise className={`text-acid ${META_TYPE_BASE}`}>
             {contactCopy.eyebrow}

@@ -3,6 +3,7 @@ import BackLink from "@/components/works/back-link";
 import BlueprintGrid from "@/components/works/blueprint-grid";
 import WorkCard from "@/components/works/work-card";
 import { worksCopy } from "@/components/works/works-copy";
+import SiteTexture from "@/components/site-texture";
 import JsonLd from "@/components/json-ld";
 import { getWorks } from "@/lib/content/source";
 import { breadcrumbSchema, pageOpenGraph } from "@/lib/seo";
@@ -49,6 +50,8 @@ export default async function WorkIndexPage() {
           { name: "Work" },
         ])}
       />
+
+      <SiteTexture className="text-acid opacity-[0.14]" />
 
       {/* <BlueprintGrid /> */}
 

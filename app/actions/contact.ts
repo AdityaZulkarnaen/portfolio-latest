@@ -62,7 +62,14 @@ import { contactCopy } from "@/components/contact/contact-copy";
  * below are about content, and a body big enough to matter never reaches them.
  */
 
-/** What the form renders. `useActionState` holds the last one returned. */
+/**
+ * What the form renders. `useActionState` holds the last one returned.
+ *
+ * A type, so it may live here: `"use server"` erases to a list of exported
+ * *functions*, and anything that survives to runtime and is not one is a build
+ * error. The matching `CONTACT_INITIAL` value therefore cannot be here, and
+ * sits in `components/contact/contact.tsx` beside its only consumer.
+ */
 export type ContactState = {
   status: "idle" | "sent" | "error";
   /** Shown above the form. Already user-facing — never a raw error. */
@@ -76,8 +83,6 @@ export type ContactState = {
    */
   attempt: number;
 };
-
-export const CONTACT_INITIAL: ContactState = { status: "idle", attempt: 0 };
 
 /** Caps, matched by `maxLength` on the inputs so the limit is visible first. */
 const LIMITS = { name: 80, email: 160, body: 2000 } as const;

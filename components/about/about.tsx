@@ -5,6 +5,7 @@ import { gsap, killScrollTriggersIn, useGSAP } from "@/lib/gsap";
 import { useReducedMotion } from "@/lib/use-media-query";
 import { META_TYPE_BASE } from "@/lib/site-config";
 import type { About as AboutContent } from "@/lib/content/types";
+import SiteTexture from "@/components/site-texture";
 import { aboutCopy } from "./about-copy";
 import PhotoFrame from "./photo-frame";
 import RoleMarquee from "./role-marquee";
@@ -255,6 +256,11 @@ export default function About({ about }: { about: AboutContent }) {
           />
         ))}
       </div>
+
+      {/* Void ink, because this chapter's ground is the slab. Weakest setting
+          on the site: the panel already carries a photo, a marquee and a wall
+          of type, and paper is meant to be felt rather than seen. */}
+      <SiteTexture className="text-void opacity-[0.09]" />
 
       {/* No `overflow-hidden` here — it would break the sticky children. */}
       <div className="relative">

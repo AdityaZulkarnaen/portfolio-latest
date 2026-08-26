@@ -398,3 +398,40 @@ html[data-ground-mid="acid"] [data-rail-thumb] {
 html[data-ground-mid="acid"] [data-trail] > div {
   background-color: var(--color-void);
 }
+
+/* ─── The paper ────────────────────────────────────────────────────────────
+   `components/site-texture.tsx`, and the tile it repeats.
+
+   Drawn as a mask rather than as a background image, which is the whole point:
+   the SVG is white contours on transparent, and what shows through it is
+   `currentColor`. One file therefore serves every ground on the site — acid on
+   the void, void on Chapter .05's acid, void on Chapter .02's slab — and a
+   section picks its ink by setting `text-…` on the element. A background-image
+   would have needed one recoloured copy per chapter.
+
+   The tile is exactly seamless in both axes by construction, not by retouching:
+   see the tiling identity at the head of `scripts/gen-wave-texture.mjs`. So it
+   simply repeats, at its authored pixel size — scaling it would stretch the
+   line weight and it would stop reading as ink. */
+[data-texture] {
+  background-color: currentColor;
+  -webkit-mask-image: url("/textures/currents-weave.svg");
+  mask-image: url("/textures/currents-weave.svg");
+  -webkit-mask-size: var(--texture-tile);
+  mask-size: var(--texture-tile);
+  -webkit-mask-repeat: repeat;
+  mask-repeat: repeat;
+}
+
+/* Must match W and H in the generator. Halved below `sm`: the tile is a
+   thousand pixels wide, so on a phone a section would show most of one and the
+   texture would read as a few stray curves rather than as a field. */
+:root {
+  --texture-tile: 500px 400px;
+}
+
+@media (min-width: 40rem) {
+  :root {
+    --texture-tile: 1000px 800px;
+  }
+}
