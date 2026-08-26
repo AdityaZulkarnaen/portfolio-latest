@@ -27,7 +27,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const dryRun = process.argv.includes("--dry-run");
 
 /**
- * Which document types to seed. Defaults to all three.
+ * Which document types to seed. Defaults to all of them.
  *
  * The reason this exists: `--replace` is per document id, so seeding a type you
  * have already written by hand is harmless to *your* documents but leaves four
@@ -37,7 +37,7 @@ const dryRun = process.argv.includes("--dry-run");
 const onlyFlag = process.argv.indexOf("--only");
 const only = onlyFlag === -1 ? null : process.argv[onlyFlag + 1];
 
-const TYPES = ["work", "experience", "tool"];
+const TYPES = ["work", "experience", "tool", "about"];
 
 if (only && !TYPES.includes(only)) {
   console.error(
@@ -169,6 +169,26 @@ const documents = [
     reverse: tool.reverse,
     position: tool.position,
   })),
+  // The one singleton. Its id is fixed rather than derived, and it has to be
+  // exactly `about`: the Studio reaches this document by id, and the site's
+  // query takes the first `about` in the dataset — a second one would not be an
+  // extra entry anywhere, it would silently be the chapter half the time.
+  //
+  // No `_sanityAsset` on the photos: unlike the tool logos there are no files
+  // in `public/` to upload, so the array is seeded empty and the frame draws
+  // its calibration card until the real shots are uploaded in the Studio.
+  ...(wants("about")
+    ? [
+        {
+          _id: "about",
+          _type: "about",
+          name: seed.about.name,
+          roles: seed.about.roles,
+          bio: seed.about.bio,
+          resumeUrl: seed.about.resumeUrl,
+        },
+      ]
+    : []),
 ];
 
 const ndjson = documents.map((doc) => JSON.stringify(doc)).join("\n");

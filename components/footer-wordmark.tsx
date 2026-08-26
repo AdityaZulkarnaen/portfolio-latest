@@ -68,8 +68,17 @@ const BAND = {
  * sits under its word, and the layer as a whole still paints over every layer
  * before it in the tree — which is what takes the bite out of the copy above.
  */
+/**
+ * `whitespace-nowrap` is load-bearing twice over, so it is not a tidy-up.
+ *
+ * It is what keeps the fit's measurement honest — see the note on `fit()` — and
+ * it is also what keeps the fit's *result* stable. A fitted line is exactly as
+ * wide as the column by construction, so it sits on the wrap boundary: a
+ * sub-pixel rounding the wrong way is enough to break it onto a second line,
+ * which then defeats the very measurement that would correct it.
+ */
 const LAYER_TYPE =
-  "absolute inset-x-0 bottom-0 isolate block font-blur text-[1em] font-medium tracking-[-0.02em] text-void";
+  "absolute inset-x-0 bottom-0 isolate block whitespace-nowrap font-blur text-[1em] font-medium tracking-[-0.02em] text-void";
 
 /**
  * The footer wordmark: one name, said once, printed four times.
@@ -104,8 +113,26 @@ export default function FooterWordmark({ word }: { word: string }) {
   // Fit the name to the column. A clamp can only ever be tuned for one string
   // at one set of metrics, and it lands short on most widths — the wordmark is
   // supposed to be the full measure of the footer, not nearly it. Everything
-  // about this block is in `em`, so one linear correction from the word's
-  // rendered width to the column's is exact, and re-running it is a no-op.
+  // about this block is in `em`, so a linear correction from the word's
+  // rendered width to the column's is exact.
+  //
+  // The whole method rests on the probe being one unbroken line, which is why
+  // the layers are `whitespace-nowrap` and why that class is not cosmetic. Let
+  // the word wrap and `getBoundingClientRect()` stops reporting the word: an
+  // inline element spanning two lines returns the union of its line boxes,
+  // which is the column. `natural` then equals `target`, the correction
+  // degenerates to a no-op, and the block is stuck at whatever size wrapped it.
+  //
+  // That was a real failure and not a hypothetical one. The display face is
+  // `display: "block"`, so the first pass measures the fallback; next/font's
+  // size-adjusted fallback is close but not exact, so the first correction
+  // could land a little over. BlurWeb then swapped in, the word wrapped, and
+  // every later pass — including the one `fonts.ready` fires — measured the
+  // wrap and changed nothing. A two-line layer is `2 × 0.78em` tall and hangs
+  // off `bottom-0`, so with the echo offsets on top of it the stack stood
+  // 2.3em above the container's floor inside a box reserving 1.62em: the extra
+  // line, bands and all, printed acid over the section above the footer. The
+  // same oversized `em` is what sent the echoes travelling too far.
   useEffect(() => {
     const root = rootRef.current;
     const probe = probeRef.current;
@@ -116,10 +143,21 @@ export default function FooterWordmark({ word }: { word: string }) {
 
     const fit = () => {
       const target = root.clientWidth;
-      const natural = probe.getBoundingClientRect().width;
-      if (target <= 0 || natural <= 0) return;
-      const size = parseFloat(getComputedStyle(root).fontSize);
-      root.style.fontSize = `${(size * target) / natural}px`;
+      if (target <= 0) return;
+
+      // Twice, not once. One correction is exact only if the face measured is
+      // the face that ends up drawn, and during the block period it is not.
+      // The second pass costs one forced layout and settles whatever the first
+      // one got wrong — including the case where the real face arrives between
+      // the two.
+      for (let pass = 0; pass < 2; pass += 1) {
+        const natural = probe.getBoundingClientRect().width;
+        if (natural <= 0) return;
+        if (Math.abs(natural - target) < 0.5) break;
+        const size = parseFloat(getComputedStyle(root).fontSize);
+        root.style.fontSize = `${(size * target) / natural}px`;
+      }
+
       fitted = root.clientWidth;
     };
 
@@ -202,7 +240,18 @@ export default function FooterWordmark({ word }: { word: string }) {
     <div
       ref={rootRef}
       // The clamp is only what the block is set at before the fit runs.
-      className="relative select-none text-[clamp(3rem,17vw,15rem)] leading-[0.78]"
+      //
+      // `overflow-hidden` never fires in correct operation and is there for
+      // when something is not: the open stack stands 1.379em above this box's
+      // floor — 0.741em of echo offset, one 0.78em line box, and the band
+      // reaching 0.638em over its own baseline — inside the 1.62em reserved
+      // here. What it buys is the failure mode. Every layer carries an opaque
+      // full-width acid band, so a layer that ends up taller than its line box
+      // does not merely look wrong, it prints the footer's ground over the
+      // section above it. Clipped, the worst case is a wordmark with its top
+      // cut off, which is a bug someone reports rather than one that looks
+      // like a broken page.
+      className="relative select-none overflow-hidden text-[clamp(3rem,17vw,15rem)] leading-[0.78]"
       style={{ height: RESERVE }}
     >
       {ECHOES.map((_, i) => (

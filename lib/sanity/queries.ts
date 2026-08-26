@@ -8,6 +8,7 @@ import { defineQuery } from "next-sanity";
 export const WORK_TAG = "work";
 export const EXPERIENCE_TAG = "experience";
 export const TOOL_TAG = "tool";
+export const ABOUT_TAG = "about";
 
 /**
  * The cover is projected rather than dereferenced to a URL.
@@ -112,5 +113,34 @@ export const toolsQuery = defineQuery(`
       null
     ),
     "reverse": coalesce(reverse, false)
+  }
+`);
+
+/**
+ * Chapter .02, the singleton.
+ *
+ * `[0]` rather than a list, and the Studio is configured so a second `about`
+ * document cannot be created — otherwise "the first one" would be a coin toss.
+ * A missing document yields null, which `getAbout()` reads as "fall back to the
+ * seed": unlike the three lists above, an *empty* About is not a legitimate
+ * editorial choice, it is a dataset that has not been filled in yet.
+ *
+ * Photos are projected the way the work cover is — raw image, hotspot and crop
+ * intact, `lqip` dereferenced off the asset — because the frame crops them
+ * itself. `coalesce` on the array is what keeps `photos.map` in the component
+ * from meeting an undefined on a document saved before any shots were added.
+ */
+export const aboutQuery = defineQuery(`
+  *[_type == "about"][0] {
+    name,
+    "roles": coalesce(roles, []),
+    "bio": coalesce(bio, []),
+    "resumeUrl": resumeUrl,
+    "photos": coalesce(photos[]{
+      "image": select(defined(asset) => {_type, asset, hotspot, crop}),
+      "alt": coalesce(alt, ""),
+      "caption": coalesce(caption, ""),
+      "lqip": asset->metadata.lqip
+    }, [])
   }
 `);

@@ -29,12 +29,20 @@ scroll container in the Studio.
 
 ## Content
 
-Chapters .03 (Tech stack), .04 (Works) and .05 (Experience) come from Sanity.
-Chapter .06 (Contact) writes *into* it — see **The contact form** below.
-Everything else — the hero, the About slab, and every label and heading — is
-copy in the repo, in the `*-copy.ts` files beside each chapter. That split is
-deliberate: content changes on its own schedule, chrome changes when the design
-does.
+Chapters .02 (About), .03 (Tech stack), .04 (Works) and .05 (Experience) come
+from Sanity. Chapter .06 (Contact) writes *into* it — see **The contact form**
+below. Everything else — the hero, and every label and heading — is copy in the
+repo, in the `*-copy.ts` files beside each chapter. That split is deliberate:
+content changes on its own schedule, chrome changes when the design does.
+
+Chapter .02 is the one singleton. It is reached by its own item in the Studio's
+sidebar rather than through a list, and it is deliberately missing from the
+"create new" menu: the site reads the first `about` document in the dataset, so
+a second one would not be an extra entry anywhere — it would quietly be the
+chapter half the time. Its photographs are one box that dissolves through
+pixels from the centre on each change, so shots that share a composition read as
+one photo resolving into the next; upload them in the order you want them
+cycled. An empty array draws the calibration frame rather than an empty box.
 
 Chapter .03 splits along that line inside one chapter: the Studio holds each
 tool's name, initials, logo and whether the mark is reversed; the bone it is
@@ -77,8 +85,8 @@ npm run dev
 
 Then edit at <http://localhost:3000/studio>.
 
-`npm run sanity:seed -- --only work` seeds one type only (`work`, `experience`
-or `tool`) — useful once the
+`npm run sanity:seed -- --only work` seeds one type only (`work`, `experience`,
+`tool` or `about`) — useful once the
 other chapter has real content in it, since seeding both would leave
 placeholders sitting beside your own entries. `--dry-run` prints the NDJSON and
 imports nothing.
@@ -98,7 +106,7 @@ In <https://sanity.io/manage> → API → Webhooks:
 
 - **URL** `https://your-domain/api/revalidate`
 - **Dataset** `production`, **Trigger on** create / update / delete
-- **Filter** `_type in ["work", "experience", "tool"]`
+- **Filter** `_type in ["work", "experience", "tool", "about"]`
 - **HTTP method** `POST`, **API version** `v2021-03-25`
 - **Secret** the same value as `SANITY_REVALIDATE_SECRET`
 
@@ -179,6 +187,7 @@ the entry left open at the end of the chapter. Put the current role last.
 | `npm run build` | Production build |
 | `npm run lint` | ESLint |
 | `node scripts/verify-peel.mjs` | Checks Chapter .04's curl still fits its gutters |
-| `npm run sanity:seed` | Import placeholder content (`-- --only work\|experience\|tool`, `-- --dry-run`) |
+| `python scripts/verify-wordmark.py` | Checks no two letters of the hero wordmark close up (needs `pip install fonttools brotli uharfbuzz`, and a build) |
+| `npm run sanity:seed` | Import placeholder content (`-- --only work\|experience\|tool\|about`, `-- --dry-run`) |
 | `npm run sanity:cors` | Allow `http://localhost:3000` to reach the API |
 | `npm run sanity:typegen` | Regenerate `sanity.types.ts` from the schema |

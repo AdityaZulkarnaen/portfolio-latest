@@ -4,7 +4,11 @@ import {
 } from "@sanity/image-url";
 
 import { dataset, studioProjectId } from "./env";
-import type { WorkCover, WorkDevice } from "@/lib/content/types";
+import type {
+  SanityImageValue,
+  WorkCover,
+  WorkDevice,
+} from "@/lib/content/types";
 
 const builder = createImageUrlBuilder({
   projectId: studioProjectId,
@@ -46,6 +50,30 @@ export function coverSrc(cover: WorkCover, frame: WorkDevice | "hero") {
 
   return builder
     .image(cover.image as SanityImageSource)
+    .width(width)
+    .height(height)
+    .fit("crop")
+    .auto("format")
+    .url();
+}
+
+/**
+ * Chapter .02's frame, at 2x of the largest it is ever drawn — a little over
+ * 550 CSS px in the pinned column.
+ *
+ * A finished URL rather than a raw value handed to `next/image`, because this
+ * one does not only go into an `<img>`: the pixel dissolve draws the same
+ * bitmap into a canvas, and a canvas needs one string that decodes. Both layers
+ * asking for the identical URL is the point — the second is a cache hit, not a
+ * second download.
+ */
+const PHOTO: [number, number] = [1100, 1375];
+
+export function photoSrc(image: SanityImageValue) {
+  const [width, height] = PHOTO;
+
+  return builder
+    .image(image as SanityImageSource)
     .width(width)
     .height(height)
     .fit("crop")

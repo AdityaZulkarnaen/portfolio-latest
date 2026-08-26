@@ -28,6 +28,33 @@ const SCRAMBLE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/[]{}#*+=-_.:";
 const WORDMARK_TYPE =
   "block font-display text-[clamp(2.5rem,8.5vw,7.5rem)] font-black uppercase leading-[0.86] tracking-[-0.045em]";
 
+/**
+ * The outlined line has the font's own kerning switched off, and only it.
+ *
+ * "ZULKARNAEN" contains exactly one kern pair — Archivo pulls K and A together
+ * by 50 units, 0.05em — and that single pair is what made the surname look
+ * broken. Measured as ink-to-ink gaps at the clamp ceiling, every other pair on
+ * the line sits between 11.6px and 24.4px while KA came out at 7.3px: half the
+ * pack, and the outlier is the one pair whose two edges are near-parallel
+ * diagonals, so the wedge left between them reads as a crossing rather than as
+ * a tight gap. They never actually touched. Off, KA lands at 13.3px — mid-pack —
+ * and the line costs 6px more width.
+ *
+ * Tracking was the wrong lever and was tried first: opening the whole line
+ * enough to fix one pair loosens the other eight, and the wordmark stops
+ * reading as one object. This is a bad pair, not a bad rhythm.
+ *
+ * Not applied to the solid line, where the same switch would be a regression:
+ * "ADITYA" kerns TY *and* YA, and without it YA opens to 39px against a 10-24px
+ * field — a hole in the middle of the name, which is a worse fault than the one
+ * being fixed.
+ *
+ * Re-measure if either line's text changes. `scripts/verify-wordmark.py` shapes
+ * the real font through HarfBuzz and prints the gap table; the answer is not
+ * available by eye, which is the whole reason it exists.
+ */
+const WORDMARK_OUTLINE = "[font-kerning:none]";
+
 export default function Hero() {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
@@ -448,7 +475,11 @@ export default function Hero() {
               </span>
             </div>
             <div className="overflow-hidden">
-              <span data-reveal data-outline className={WORDMARK_TYPE}>
+              <span
+                data-reveal
+                data-outline
+                className={`${WORDMARK_TYPE} ${WORDMARK_OUTLINE}`}
+              >
                 {heroCopy.surname}
               </span>
             </div>

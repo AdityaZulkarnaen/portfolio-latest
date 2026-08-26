@@ -25,6 +25,18 @@ export default defineConfig({
 
   schema: { types: schemaTypes },
 
+  document: {
+    /**
+     * `about` is a singleton — one document, reached through its own item in
+     * the structure. Taking it out of the global "create new" is what keeps a
+     * second one from existing: the query reads `*[_type == "about"][0]`, so a
+     * duplicate would not be an extra entry anywhere, it would silently be the
+     * chapter half the time.
+     */
+    newDocumentOptions: (previous) =>
+      previous.filter((item) => item.templateId !== "about"),
+  },
+
   plugins: [
     structureTool({ structure }),
     // Query playground. Handy for checking a GROQ change against the real

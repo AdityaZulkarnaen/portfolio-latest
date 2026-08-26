@@ -1,41 +1,24 @@
-/** Every user-facing string in Chapter .02 lives here, mirroring `hero-copy`. */
+/**
+ * Chapter .02's *chrome*, mirroring `hero-copy`.
+ *
+ * The facts moved out. The name, the marquee roles, the bio and the photographs
+ * are content and live in Sanity now — one `about` document, read through
+ * `getAbout()` in `lib/content/source.ts`, with `lib/content/seed.json` as the
+ * fallback before a project is configured. What is left here is what the
+ * chapter is *made of* rather than what it says: the chapter number, the seam,
+ * the button's wording and the counter's label all change when the design does,
+ * not when the copy does.
+ */
 export const aboutCopy = {
   eyebrow: "--- Chapter .02",
   chapter: "About Me",
-  /** Marquee phrases. Rendered in BlurWeb; the separator is added by the band. */
-  roles: [
-    "FULL STACK WEB DEVELOPER",
-    "MOBILE APP ENGINEER",
-    "UI DESIGNER",
-  ],
-  name: "Aditya Lucky Zulkarnaen",
-  /**
-   * Phrases wrapped in `*` are marked as key phrases and get the acid swipe.
-   * The marker lives in the copy rather than in the markup so the sentence
-   * stays one readable string to edit, and so the word-splitter that drives
-   * the scroll sweeps still sees a plain paragraph.
-   */
-  bio: [
-    "‎ ‎ ‎ ‎My name is Aditya Lucky Zulkarnaen, I am a undergraduate student at *Universitas Gadjah Mada*, majoring in Software Engineering. I have a strong passion for *Software Development* and *Data Engineering*.", "I explore how to create *seamless design* experiences into *scalable architectures*, building systems that are not only functional but also *intuitive and visually appealing*."
-  ],
   resume: "See My Resume",
+  /** Where the button goes when the document leaves `resumeUrl` empty. */
   resumeHref: "/resume.pdf",
   /** Left of the seam that closes over the hero. */
   seamLeft: "‎",
   seamRight: "",
+  /** Counter under the photo frame — "IMG 02/04". */
   deckLabel: "IMG",
   deckHint: "CLICK TO ADVANCE",
-  /**
-   * Drop files into `public/photos/` and point `src` at them. An empty `src`
-   * renders the calibration placeholder instead of a broken image, so the deck
-   * is presentable before the shoot exists.
-   */
-  photos: [
-    { src: "", alt: "Aditya at work", caption: "STUDIO — 2026" },
-    { src: "", alt: "Aditya presenting", caption: "FIELD NOTES" },
-    { src: "", alt: "Aditya on location", caption: "OFF THE CLOCK" },
-    { src: "", alt: "Aditya portrait", caption: "PORTRAIT — 01" },
-  ],
 } as const;
-
-export type AboutPhoto = (typeof aboutCopy.photos)[number];

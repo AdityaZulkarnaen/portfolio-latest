@@ -39,6 +39,17 @@ export const structure: StructureResolver = (S) =>
             .defaultOrdering([{ field: "position", direction: "asc" }]),
         ),
       S.divider(),
+      // A singleton, and pinned to one document id rather than listed: there
+      // is exactly one "me", and a second `about` document would be picked up
+      // by the query at random. Reaching the editor directly is also the only
+      // thing standing between an editor and a "create new" button that would
+      // make that second document.
+      S.listItem()
+        .title("About")
+        .id("about")
+        .schemaType("about")
+        .child(S.document().schemaType("about").documentId("about")),
+      S.divider(),
       // Not content, and kept apart from it: the site writes these, the Studio
       // only reads them. Newest first, because a mailbox is read from the top.
       S.listItem()

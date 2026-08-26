@@ -3,7 +3,6 @@
 import { useRef } from "react";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
 import { useReducedMotion } from "@/lib/use-media-query";
-import { aboutCopy } from "./about-copy";
 
 /** Two identical groups; the tween travels exactly one group width (-50%). */
 const GROUPS = [0, 1];
@@ -15,7 +14,7 @@ const GROUPS = [0, 1];
  * timeScale and the direction flips with the scroll direction — so the panel
  * feels driven by the same hand as the section it just covered.
  */
-export default function RoleMarquee() {
+export default function RoleMarquee({ roles }: { roles: string[] }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const reducedMotion = useReducedMotion();
@@ -68,7 +67,7 @@ export default function RoleMarquee() {
       <div ref={trackRef} className="flex w-max will-change-transform">
         {GROUPS.map((group) => (
           <div key={group} className="flex shrink-0 items-center">
-            {aboutCopy.roles.map((role) => (
+            {roles.map((role) => (
               <span
                 key={role}
                 className="flex shrink-0 items-center font-display font-black text-[clamp(2.25rem,min(8.5vw,11vh),9rem)] leading-[0.95] uppercase tracking-[-0.01em] text-void/90"

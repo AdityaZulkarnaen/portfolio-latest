@@ -16,7 +16,13 @@
  */
 
 import raw from "./seed.json";
-import type { Experience, PortableTextBlock, Tool, Work } from "./types";
+import type {
+  About,
+  Experience,
+  PortableTextBlock,
+  Tool,
+  Work,
+} from "./types";
 
 /**
  * Plain paragraphs to Portable Text.
@@ -80,3 +86,27 @@ export const seedTools: Tool[] = raw.tools.map((tool) => ({
   src: tool.src,
   reverse: tool.reverse,
 }));
+
+/**
+ * Chapter .02 before the dataset exists.
+ *
+ * The photographs are the honest part of this one: there are no files yet, so
+ * every entry carries a null image and the frame draws its calibration card
+ * instead. The alt text and captions are still real, because they are what the
+ * counter and the screen reader read either way.
+ *
+ * Unlike the three above, this is also the fallback for a *missing* document
+ * rather than only for an unconfigured project — see `getAbout()`.
+ */
+export const seedAbout: About = {
+  name: raw.about.name,
+  roles: raw.about.roles,
+  bio: raw.about.bio,
+  resumeUrl: raw.about.resumeUrl,
+  photos: raw.about.photos.map((photo) => ({
+    image: null,
+    alt: photo.alt,
+    caption: photo.caption,
+    lqip: null,
+  })),
+};

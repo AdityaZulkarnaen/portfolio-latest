@@ -83,6 +83,45 @@ export type Work = {
   repo?: string;
 };
 
+/**
+ * One photograph in Chapter .02's frame.
+ *
+ * The image is carried raw for the same reason `WorkCover` is: the frame is a
+ * fixed 4/5 box, the shots will not be, and only Sanity's builder can apply
+ * the editor's hotspot to that crop.
+ *
+ * A null image is not an error — it renders the calibration frame, which is
+ * what the seed leans on so the chapter is presentable before the shoot
+ * exists.
+ */
+export type AboutPhoto = {
+  image: SanityImageValue | null;
+  alt: string;
+  /** Set beside the counter under the frame. May be empty. */
+  caption: string;
+  /** Sanity's 20px base64 preview, or null on assets with no metadata. */
+  lqip: string | null;
+};
+
+/**
+ * Chapter .02, as content. A singleton in the Studio.
+ *
+ * The chapter number, the seam label and the button's wording are *not* here —
+ * those are chrome, and they stay in `components/about/about-copy.ts`. What is
+ * here is everything an editor would want to change without a deploy.
+ */
+export type About = {
+  name: string;
+  /** Marquee lines, in the order they run. */
+  roles: string[];
+  /** One string per paragraph. `*asterisks*` mark the acid-swiped phrases. */
+  bio: string[];
+  /** Empty renders the calibration frame rather than an empty box. */
+  photos: AboutPhoto[];
+  /** Null falls back to the copy file's `/resume.pdf`. */
+  resumeUrl: string | null;
+};
+
 export type Experience = {
   /** React key. Unique, and stable across edits to the copy. */
   slug: string;

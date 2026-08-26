@@ -2,13 +2,18 @@ import { parseBody } from "next-sanity/webhook";
 import { revalidateTag } from "next/cache";
 import { NextResponse, type NextRequest } from "next/server";
 
-import { EXPERIENCE_TAG, TOOL_TAG, WORK_TAG } from "@/lib/sanity/queries";
+import {
+  ABOUT_TAG,
+  EXPERIENCE_TAG,
+  TOOL_TAG,
+  WORK_TAG,
+} from "@/lib/sanity/queries";
 
 /**
  * What makes a Studio edit show up on the site.
  *
  * Point a Sanity webhook at POST /api/revalidate, filtered to
- * `_type in ["work", "experience", "tool"]`, with the same secret as
+ * `_type in ["work", "experience", "tool", "about"]`, with the same secret as
  * `SANITY_REVALIDATE_SECRET`. The hourly `revalidate` in
  * `lib/content/source.ts` is only the net under this.
  *
@@ -26,7 +31,7 @@ import { EXPERIENCE_TAG, TOOL_TAG, WORK_TAG } from "@/lib/sanity/queries";
 const revalidateSecret = process.env.SANITY_REVALIDATE_SECRET;
 
 /** Only tags this app actually attaches to a fetch. */
-const TAGS = new Set<string>([WORK_TAG, EXPERIENCE_TAG, TOOL_TAG]);
+const TAGS = new Set<string>([WORK_TAG, EXPERIENCE_TAG, TOOL_TAG, ABOUT_TAG]);
 
 type WebhookBody = { _type?: string };
 

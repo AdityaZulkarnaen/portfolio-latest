@@ -338,5 +338,36 @@
       "src": "/logo/figma.webp",
       "reverse": false
     }
-  ]
+  ],
+  "about": {
+    "name": "Aditya Lucky Zulkarnaen",
+    "roles": [
+      "FULL STACK WEB DEVELOPER",
+      "MOBILE APP ENGINEER",
+      "UI DESIGNER"
+    ],
+    "bio": [
+      "My name is Aditya Lucky Zulkarnaen, I am an undergraduate student at *Universitas Gadjah Mada*, majoring in Software Engineering. I have a strong passion for *Software Development* and *Data Engineering*.",
+      "I explore how to create *seamless design* experiences into *scalable architectures*, building systems that are not only functional but also *intuitive and visually appealing*."
+    ],
+    "resumeUrl": "/resume.pdf",
+    "photos": [
+      {
+        "alt": "Aditya at work",
+        "caption": "STUDIO — 2026"
+      },
+      {
+        "alt": "Aditya presenting",
+        "caption": "FIELD NOTES"
+      },
+      {
+        "alt": "Aditya on location",
+        "caption": "OFF THE CLOCK"
+      },
+      {
+        "alt": "Aditya portrait",
+        "caption": "PORTRAIT — 01"
+      }
+    ]
+  }
 }

@@ -5,15 +5,17 @@ import { cache } from "react";
 import { client } from "@/lib/sanity/client";
 import { isSanityConfigured } from "@/lib/sanity/env";
 import {
+  ABOUT_TAG,
   EXPERIENCE_TAG,
   TOOL_TAG,
   WORK_TAG,
+  aboutQuery,
   experiencesQuery,
   toolsQuery,
   worksQuery,
 } from "@/lib/sanity/queries";
-import { seedExperiences, seedTools, seedWorks } from "./seed";
-import type { Experience, Tool, Work } from "./types";
+import { seedAbout, seedExperiences, seedTools, seedWorks } from "./seed";
+import type { About, Experience, Tool, Work } from "./types";
 
 /**
  * The one door between the site and its content.
@@ -80,6 +82,29 @@ export const getTools = cache(async (): Promise<Tool[]> => {
     {},
     { next: { revalidate: REVALIDATE_SECONDS, tags: [TOOL_TAG] } },
   );
+});
+
+/**
+ * Chapter .02, the one singleton.
+ *
+ * The exception to rule 2 at the top of this file, and deliberately so: an
+ * empty Works grid is an editorial decision, but a missing `about` document is
+ * a dataset nobody has filled in yet. There is no version of this chapter with
+ * no name and no bio in it — the marquee would run empty and the slab would
+ * close over the hero onto nothing — so absence here falls back to the seed the
+ * way an unconfigured project does. A *query failure* still throws, as
+ * everywhere else.
+ */
+export const getAbout = cache(async (): Promise<About> => {
+  if (!isSanityConfigured) return seedAbout;
+
+  const about = await client.fetch<About | null>(
+    aboutQuery,
+    {},
+    { next: { revalidate: REVALIDATE_SECONDS, tags: [ABOUT_TAG] } },
+  );
+
+  return about ?? seedAbout;
 });
 
 /**

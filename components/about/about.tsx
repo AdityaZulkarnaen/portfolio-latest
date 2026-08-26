@@ -4,8 +4,9 @@ import { useEffect, useRef } from "react";
 import { gsap, killScrollTriggersIn, useGSAP } from "@/lib/gsap";
 import { useReducedMotion } from "@/lib/use-media-query";
 import { META_TYPE_BASE } from "@/lib/site-config";
+import type { About as AboutContent } from "@/lib/content/types";
 import { aboutCopy } from "./about-copy";
-import PhotoDeck from "./photo-deck";
+import PhotoFrame from "./photo-frame";
 import RoleMarquee from "./role-marquee";
 
 /** Slabs the panel reaches up with. */
@@ -69,7 +70,7 @@ function splitBio(paragraph: string): BioToken[] {
  * scrub, nothing to keep in sync, and it behaves identically on a trackpad
  * fling, a keyboard PageDown and with JS disabled.
  */
-export default function About() {
+export default function About({ about }: { about: AboutContent }) {
   const rootRef = useRef<HTMLElement>(null);
   const headRef = useRef<HTMLDivElement>(null);
   const reducedMotion = useReducedMotion();
@@ -269,18 +270,18 @@ export default function About() {
             </span>
           </div>
 
-          <RoleMarquee />
+          <RoleMarquee roles={about.roles} />
         </div>
 
         {/* The marquee is decorative; this is what a screen reader gets. */}
         <h2 className="sr-only">
-          {aboutCopy.chapter} — {aboutCopy.roles.join(", ")}
+          {about.name} — {aboutCopy.chapter}: {about.roles.join(", ")}
         </h2>
 
         {/* The tall mobile bottom padding is the landing strip for Chapter
             .03's curtain: below `md` the aside flows after the bio instead of
             pinning, so without a tail the void slats reach up into the photo
-            deck. Keep it at least as tall as that band.
+            frame. Keep it at least as tall as that band.
 
             The right padding is the chapter rail's gutter. This is the one
             chapter whose content runs the full height of the right edge — the
@@ -312,11 +313,24 @@ export default function About() {
                   <span className="text-void/55">{aboutCopy.chapter}</span>
                 </p>
               </div>
-                {aboutCopy.bio.map((paragraph) => (
+                {about.bio.map((paragraph) => (
+                  /* Sized to be read rather than declaimed. At the display
+                     size this used to run at, two paragraphs filled a laptop
+                     screen on their own and the scroll sweep had nothing left
+                     to travel through — the block arrived and left as one slab.
+                     The measure is capped in `ch` for the same reason: the
+                     column is over 600px wide on a large screen, which is
+                     twenty words to a line in mono.
+
+                     `leading` is a little over 1 now, where it used to be
+                     exactly 1 so the acid chips on consecutive lines would meet
+                     into one mass. At this size that mass is what read as
+                     heavy — the chips are better off as separate strokes, and
+                     the spacing is what a paragraph this long needs anyway. */
                   <p
                     key={paragraph.slice(0, 24)}
                     data-bio
-                    className="max-w-[160ch] text-start font-mono font-semibold text-[32px] leading-[1] text-void md:text-[52px]"
+                    className="max-w-[34ch] text-start font-mono font-semibold text-[20px] leading-[1.3] text-void sm:text-[22px] md:text-[24px] lg:text-[30px]"
                   >
                     {/* Split in the markup, not at runtime: the full sentence
                         still ships in the HTML, and the spans stay inline so
@@ -398,11 +412,11 @@ export default function About() {
               </div>
 
               <div className="w-full md:ml-auto md:min-h-0 md:flex-1">
-                <PhotoDeck />
+                <PhotoFrame photos={about.photos} />
               </div>
 
               <a
-                href={aboutCopy.resumeHref}
+                href={about.resumeUrl || aboutCopy.resumeHref}
                 className={`group relative inline-flex shrink-0 items-center gap-2 self-start overflow-hidden bg-acid px-4 py-2 md:self-end ${META_TYPE_BASE} text-void`}
               >
                 {/* Fill sweep on hover — the acid stays, the ground inverts. */}
