@@ -37,17 +37,34 @@ export default function SiteScroll() {
   const reducedMotion = useReducedMotion();
 
   const [chapters, setChapters] = useState<Chapter[]>([]);
+  /**
+   * Whether there is anything to scroll at all.
+   *
+   * This, not the chapter count, is what decides the rail renders. The rail
+   * used to stand down on any page without `[data-chapter]`, which meant a
+   * project page fell back to the native scrollbar and scrolled like a
+   * different site. It is the site's scrollbar now, chapters or no chapters —
+   * on a page with none it is simply a rail with no ticks on it.
+   *
+   * A page shorter than the viewport still gets nothing: a scrollbar for a
+   * document that does not scroll is a control that does not do anything.
+   */
+  const [scrollable, setScrollable] = useState(false);
   const maxScrollRef = useRef(1);
 
   // Measure on mount, on resize, and whenever the document grows — the
   // chapters are svh-sized, so a mobile URL bar collapsing changes every offset.
   useEffect(() => {
     const measure = () => {
-      const max = Math.max(
-        1,
-        document.documentElement.scrollHeight - window.innerHeight,
-      );
+      const overflow =
+        document.documentElement.scrollHeight - window.innerHeight;
+      const max = Math.max(1, overflow);
       maxScrollRef.current = max;
+      // A few pixels of slack: sub-pixel layout rounding can leave a page that
+      // is visually exactly one screen tall reporting one or two px of
+      // overflow, and a rail whose thumb fills the whole track is furniture
+      // rather than a control.
+      setScrollable(overflow > 4);
 
       const found = [...document.querySelectorAll<HTMLElement>("[data-chapter]")]
         .map((el) => ({
@@ -124,7 +141,7 @@ export default function SiteScroll() {
   // native bar away too would leave nothing to scroll with.
   useEffect(() => {
     const root = document.documentElement;
-    if (chapters.length === 0) {
+    if (!scrollable) {
       delete root.dataset.rail;
       return;
     }
@@ -132,7 +149,7 @@ export default function SiteScroll() {
     return () => {
       delete root.dataset.rail;
     };
-  }, [chapters.length]);
+  }, [scrollable]);
 
   const seek = useCallback((clientY: number) => {
     const rail = railRef.current;
@@ -162,7 +179,7 @@ export default function SiteScroll() {
     [seek],
   );
 
-  if (chapters.length === 0) return null;
+  if (!scrollable) return null;
 
   return (
     <div
@@ -177,7 +194,12 @@ export default function SiteScroll() {
             is the exception the nav documents, and it is flipped by hand in
             `globals.css` off `site-ground.tsx`'s flags. Measured at the middle
             of the screen for this rail, not the top: it hangs centred. */}
-        <div className="relative w-14 md:w-20">
+        {/* The tick column, and only when there is something to hang on it.
+            Left in place empty it would push the rail a hundred pixels off the
+            edge on a project page for no reason the visitor can see. */}
+        <div
+          className={chapters.length ? "relative w-14 md:w-20" : "hidden"}
+        >
           {chapters.map((chapter) => (
             <div
               key={chapter.mark}

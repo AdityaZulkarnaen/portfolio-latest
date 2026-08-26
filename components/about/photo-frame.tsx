@@ -16,50 +16,93 @@ const FADE = 1100;
 const CELL = 18;
 
 /**
- * How far into the dissolve the reveal front has finished crossing the frame.
+ * How far into the run the circle has finished crossing the frame.
  *
- * The remainder is the tail: the outermost blocks still have to resolve from
- * flat colour into real pixels after the front has passed them, and that has to
- * happen *inside* the run — otherwise the last corner snaps into focus a frame
- * after the animation has already declared itself over.
+ * The remainder is the tail: the last blocks the front reaches are still acid
+ * when it gets there, and they have to turn into the photograph *inside* the
+ * run — otherwise the corners flip on the frame after the animation has
+ * declared itself over.
  */
-const FRONT = 0.68;
+const FRONT = 0.78;
 
 /**
- * How long one block stays a flat square before it resolves, in progress.
+ * How long a block stays acid before the photograph arrives in it.
  *
- * This and `FRONT` are a solved pair rather than taste. The last block to be
- * revealed sits at `FRONT * (1 + jitter/2)` and still has to finish resolving
- * inside the run, so `FRONT * 1.17 + RESOLVE` has to stay under 1 — over it, a
- * handful of blocks in the corners jump from flat colour to sharp on the frame
- * *after* the animation declared itself finished. These values land at 0.94.
- * Retune them together, and against the CPU port of this loop rather than by
- * eye: at 60fps the offending frame is the one nobody can catch.
+ * This is the thickness of the ring, expressed in time rather than pixels, and
+ * that is the useful way round: the front slows as it reaches the corners, so a
+ * ring measured in time stays visually even while one measured in pixels would
+ * bunch up at the end.
+ *
+ * It and `FRONT` are a solved pair rather than taste, and there are two
+ * constraints on them, not one.
+ *
+ * The first is arithmetic: the last block to be reached sits at
+ * `FRONT * (1 + JITTER/2)` and still has to finish, so
+ * `FRONT * (1 + JITTER/2) + ACID` has to stay under 1. These values land at
+ * 0.985. Over it, a block or two is still acid on the frame after the run has
+ * declared itself over.
+ *
+ * The second is what it looks like, and it is the one that is easy to get
+ * badly wrong: the ring's *area* is what the eye sees, not its width. The
+ * first cut of this ran 0.68/0.26 — only a third thicker as a fraction of the
+ * radius — and peaked at **59% of the frame acid at once**. That is not a
+ * circle opening, it is the panel flashing green four times a minute. At these
+ * values the peak is 34%, and the ring is about two blocks wide.
+ *
+ * Retune both together, and against the CPU port of this loop rather than by
+ * eye: at 60fps neither the overshoot nor the peak coverage is a frame anyone
+ * can catch.
  */
-const RESOLVE = 0.24;
+const ACID = 0.15;
+
+/** The ring's colour. `--color-acid`, written out for the canvas. */
+const ACID_INK = "#e1ff00";
+
+/**
+ * How much the per-cell noise moves a block's turn, as a fraction of the
+ * radius.
+ *
+ * Small on purpose, and it was not always: the previous version of this used
+ * three times as much, because it was a dissolve and wanted no discernible
+ * shape at all. This one is a circle opening, so the noise is only there to
+ * keep the edge made of pixels rather than drawn with a compass. Past about
+ * 0.2 the circle stops reading as a circle.
+ */
+const JITTER = 0.14;
+
+/**
+ * How much larger the incoming photograph starts, before settling to its frame.
+ *
+ * The circle opens *onto* something arriving, not onto something already
+ * parked. A few percent is enough — at more than that the edges of the frame
+ * visibly lose content on the way in.
+ */
+const ZOOM = 0.06;
 
 /**
  * Deterministic per-cell noise, in 0..1.
  *
- * A ragged edge is the whole point — a clean expanding disc of pixels reads as
- * a circular wipe rather than as an image resolving. It has to be a hash and
- * not `Math.random()` because every cell is asked for its threshold on every
- * frame of the dissolve: a fresh random each time would make blocks flicker
- * between revealed and not.
+ * It has to be a hash and not `Math.random()` because every cell is asked for
+ * its threshold on every frame of the run: a fresh random each time would make
+ * blocks flicker between arrived and not.
  */
 function hash(x: number, y: number) {
   const n = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
   return n - Math.floor(n);
 }
 
-/** Draws `img` into `w`×`h` the way `object-fit: cover` would. */
+/**
+ * Draws `img` into `w`×`h` the way `object-fit: cover` would, optionally
+ * overscaled about the centre.
+ */
 function drawCover(
   ctx: CanvasRenderingContext2D,
   img: HTMLImageElement,
   w: number,
   h: number,
+  zoom = 1,
 ) {
-  const scale = Math.max(w / img.naturalWidth, h / img.naturalHeight);
+  const scale = Math.max(w / img.naturalWidth, h / img.naturalHeight) * zoom;
   const dw = img.naturalWidth * scale;
   const dh = img.naturalHeight * scale;
   ctx.drawImage(img, (w - dw) / 2, (h - dh) / 2, dw, dh);
@@ -107,19 +150,21 @@ function drawPlaceholder(
 }
 
 /**
- * Chapter .02's photograph: one frame, and a pixel dissolve between shots.
+ * Chapter .02's photograph: one frame, and a circle of acid pixels that opens
+ * onto the next shot.
  *
  * The deck of tilted cards this replaces said "here is a pile of pictures".
- * One box says "here is me", and the interest moved to the change itself: the
- * next photo comes up out of the centre of the current one as blocks of its own
- * average colour, and each block resolves into real pixels a beat behind the
- * front that revealed it. Two shots that share a composition therefore read as
- * one photograph resolving into another rather than as a slideshow.
+ * One box says "here is me", and the interest moved to the change itself. A
+ * circle grows out of the centre of the frame; its rim is built from flat acid
+ * blocks — the page's own colour, not a tint of either photograph — and behind
+ * the rim the new shot is already there, arriving from a few percent
+ * overscaled. So the frame is never blank and never cross-faded: the old photo
+ * is cut away along a ragged pixel edge and the new one is underneath it.
  *
- * It is a canvas because that is the only way to keep the *outgoing* image on
- * screen underneath the blocks. Two stacked `<img>`s can cross-fade and a
- * `mask-image` can wipe, but neither can composite one bitmap's mosaic over
- * another's full resolution, per block.
+ * It is a canvas because that is the only way to have all three at once. Two
+ * stacked `<img>`s can cross-fade and a `mask-image` can wipe a circle, but
+ * neither can put a band of a third colour along the boundary, quantised to a
+ * grid, with a different bitmap either side of it.
  *
  * Under the canvas sits a plain `<img>` of the same URL — the same URL on
  * purpose, so it is one download — which is the photograph without scripting or
@@ -221,11 +266,9 @@ export default function PhotoFrame({ photos }: { photos: AboutPhoto[] }) {
 
     const from = document.createElement("canvas");
     const to = document.createElement("canvas");
-    const mosaic = document.createElement("canvas");
     const fromCtx = from.getContext("2d");
     const toCtx = to.getContext("2d");
-    const mosaicCtx = mosaic.getContext("2d");
-    if (!fromCtx || !toCtx || !mosaicCtx) return;
+    if (!fromCtx || !toCtx) return;
 
     let width = 0;
     let height = 0;
@@ -233,12 +276,18 @@ export default function PhotoFrame({ photos }: { photos: AboutPhoto[] }) {
     let animating = false;
 
     /** Renders photo `i` — bitmap or calibration card — into a layer. */
-    const render = (layer: CanvasRenderingContext2D, i: number) => {
+    const render = (
+      layer: CanvasRenderingContext2D,
+      i: number,
+      zoom = 1,
+    ) => {
       layer.clearRect(0, 0, width, height);
       const img = imagesRef.current[i];
       if (img?.complete && img.naturalWidth) {
-        drawCover(layer, img, width, height);
+        drawCover(layer, img, width, height, zoom);
       } else {
+        // The calibration card is drawn to the box, not to a bitmap, so there
+        // is nothing to overscale — it simply arrives at rest.
         drawPlaceholder(layer, width, height, i + 1, scale);
       }
     };
@@ -301,19 +350,10 @@ export default function PhotoFrame({ photos }: { photos: AboutPhoto[] }) {
       const rows = Math.ceil(height / cell);
 
       render(fromCtx, previous);
-      render(toCtx, index);
 
-      // One pixel per block. Letting the browser downscale the whole frame to
-      // the grid is what averages each block's colour — which is why a block
-      // already reads as "that part of the next photo" before any detail of it
-      // has arrived.
-      mosaic.width = cols;
-      mosaic.height = rows;
-      mosaicCtx.clearRect(0, 0, cols, rows);
-      mosaicCtx.drawImage(to, 0, 0, width, height, 0, 0, cols, rows);
-
-      // Distance from the centre, normalised on the corner — so the front
-      // reaches all four of them at once instead of sweeping past three.
+      // Distance from the centre, normalised on the corner — so the circle
+      // reaches all four of them at once instead of sweeping past three, and
+      // so the frame is exactly covered when the front reaches 1.
       const cx = width / 2;
       const cy = height / 2;
       const reach = Math.hypot(cx, cy);
@@ -328,23 +368,45 @@ export default function PhotoFrame({ photos }: { photos: AboutPhoto[] }) {
           return;
         }
 
+        // The incoming photograph is re-drawn every frame at a scale easing
+        // back to 1, so what the circle opens onto is still arriving rather
+        // than already parked. Once per frame, not once per block: the cells
+        // below all read from this one layer.
+        const eased = 1 - Math.pow(1 - p, 3);
+        render(toCtx, index, 1 + ZOOM * (1 - eased));
+
         ctx.clearRect(0, 0, width, height);
         ctx.drawImage(from, 0, 0);
         ctx.imageSmoothingEnabled = false;
+        ctx.fillStyle = ACID_INK;
 
         for (let row = 0; row < rows; row++) {
           for (let col = 0; col < cols; col++) {
             const x = col * cell;
             const y = row * cell;
-            const d = Math.hypot(x + cell / 2 - cx, y + cell / 2 - cy) / reach;
-            // The jitter frays the edge. It cuts both ways, so the front is a
-            // band of half-arrived blocks rather than a clean ring with a few
-            // stragglers outside it.
-            const at = (d + (hash(col, row) - 0.5) * 0.34) * FRONT;
+            // Clamped, and that is what makes the bound on `ACID` true rather
+            // than nearly true. `cols`/`rows` are rounded up, so the last
+            // column and row hang off the edge of the frame and their centres
+            // sit *past* the corner — `d` reaches about 1.03, which pushed the
+            // worst-case finish just over 1 and left a block or two still acid
+            // when the run ended. The overhang is off-canvas anyway.
+            const d = Math.min(
+              1,
+              Math.hypot(x + cell / 2 - cx, y + cell / 2 - cy) / reach,
+            );
+            // The jitter cuts both ways, so the rim is a band of blocks taking
+            // their turn rather than a clean arc with a few stragglers outside
+            // it. Small enough that the shape still reads as a circle — that is
+            // the whole point of this transition, and the reason `JITTER` is a
+            // fifth of what the dissolve it replaced used.
+            const at = (d + (hash(col, row) - 0.5) * JITTER) * FRONT;
             if (p < at) continue;
 
-            if (p < at + RESOLVE) {
-              ctx.drawImage(mosaic, col, row, 1, 1, x, y, cell, cell);
+            if (p < at + ACID) {
+              // The opening edge: flat acid, one block at a time. Drawn as a
+              // rect rather than sampled from anything, so the ring is the
+              // page's own colour and not a tint of the photograph.
+              ctx.fillRect(x, y, cell, cell);
             } else {
               ctx.drawImage(to, x, y, cell, cell, x, y, cell, cell);
             }
