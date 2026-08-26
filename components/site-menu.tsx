@@ -213,9 +213,29 @@ export default function SiteMenu({ brand }: { brand: ReactNode }) {
   // Focus follows the panel in, and back out to the button that opened it, so a
   // keyboard never loses its place — but only when focus was left on the body.
   // If something else has claimed it since, that is not ours to take back.
+  //
+  // `openedOnce` is what keeps this from firing on mount. The effect runs once
+  // when the component first renders, with `open` false and `activeElement`
+  // still the body — which is every fresh page load — and the `else` branch
+  // would then focus a button nobody has touched. Below `sm` that paints the
+  // browser's focus ring around the burger the moment the page appears, and a
+  // ring around a box wrapping two hairlines reads as a selection, not as
+  // focus. Above `sm` the button is `sm:hidden`, and focusing a `display: none`
+  // element does nothing, so the bug was invisible on desktop the whole time.
+  //
+  // Returning focus is only meaningful after a close that followed an open, so
+  // that is exactly what this now tracks. A ref rather than state: nothing
+  // renders from it, and flipping it must not cost a pass.
+  const openedOnce = useRef(false);
+
   useEffect(() => {
-    if (open) closeRef.current?.focus();
-    else if (document.activeElement === document.body) burgerRef.current?.focus();
+    if (open) {
+      openedOnce.current = true;
+      closeRef.current?.focus();
+      return;
+    }
+    if (!openedOnce.current) return;
+    if (document.activeElement === document.body) burgerRef.current?.focus();
   }, [open]);
 
   return (

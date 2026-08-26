@@ -33,6 +33,16 @@ const ECHOES = [
 const RESERVE = "1.62em";
 
 /**
+ * Below Tailwind's `md`, matched to the breakpoint the footer's own grid uses.
+ *
+ * Not an arbitrary phone width: it is precisely where `site-footer.tsx` drops
+ * `md:grid-cols-12` and the tagline and link columns stop sharing a row. That
+ * is the change that makes the footer tall enough for the scrub's range to be
+ * worth re-cutting, so the two have to agree.
+ */
+const COMPACT = "(max-width: 767px)";
+
+/**
  * The band behind each copy, sized off the height of its own `u`.
  *
  * Taken off the glyph rather than guessed: in BlurWeb the `u` runs from
@@ -216,10 +226,37 @@ export default function FooterWordmark({ word }: { word: string }) {
           scrollTrigger: {
             trigger: rootRef.current,
             // Opens across the last screen of the page: nothing has moved when
-            // the footer's top edge first appears, and the stack reaches its
-            // end state exactly when the page reaches its own.
+            // the footer's top edge first appears.
             start: "top bottom",
-            end: "bottom bottom",
+            /**
+             * Where it finishes, and why the answer is different on a phone.
+             *
+             * `bottom bottom` ends the scrub when this block's own bottom edge
+             * reaches the viewport floor, which makes the scroll range exactly
+             * the height of the wordmark — `RESERVE`, so 1.62em of whatever the
+             * fit settled on. On a wide column that font-size is around 200px
+             * and the range is a comfortable ~320px. On a phone the fit lands
+             * near 60px, so the whole stack pulls apart inside about 100px of
+             * scroll: one flick and it is over. Worse, the footer below it is
+             * far taller there — the tagline and the two link columns stack
+             * instead of sharing a 12-column grid — so several hundred more
+             * pixels go by with the wordmark already at its end state.
+             *
+             * `max` is the document's own end, so the scrub is spread across
+             * everything left to scroll and lands shut exactly as the page
+             * does. That is what the block was always described as doing; below
+             * `md` it is now also what it does.
+             *
+             * A function rather than a `useMediaQuery` dependency on purpose.
+             * ScrollTrigger re-evaluates functional bounds on every refresh,
+             * which a resize already triggers, so crossing the breakpoint is
+             * handled without rebuilding the tween — and rebuilding is the
+             * thing to avoid here, because a ScrollTrigger outlives the
+             * `useGSAP` revert that would drop its tween (see `lib/gsap.ts`)
+             * and would carry on writing `yPercent` alongside its replacement.
+             */
+            end: () =>
+              window.matchMedia(COMPACT).matches ? "max" : "bottom bottom",
             scrub: true,
           },
         },
