@@ -8,6 +8,7 @@ import SiteScroll from "@/components/site-scroll";
 import SiteSmoothScroll from "@/components/site-smooth-scroll";
 import SiteTrail from "@/components/site-trail";
 import { archivo, blurWeb, geistMono, geistSans } from "@/lib/fonts";
+import { Analytics } from "@vercel/analytics/next";
 import "../globals.css";
 
 /**
@@ -52,6 +53,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         {/* Under every page, not inside one. It is the only chrome that brings
             its own ground, so it declares `data-ground` like a chapter does. */}
         <SiteFooter />
+        <Analytics />
       </body>
     </html>
   );
