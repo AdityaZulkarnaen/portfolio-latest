@@ -126,7 +126,10 @@ export type About = {
   bio: string[];
   /** Empty renders the calibration frame rather than an empty box. */
   photos: AboutPhoto[];
-  /** Null falls back to the copy file's `/resume.pdf`. */
+  /**
+   * The uploaded PDF's asset URL if the document has one, else the link the
+   * editor typed. Null falls back to the copy file's `/resume.pdf`.
+   */
   resumeUrl: string | null;
 };
 

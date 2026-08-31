@@ -43,11 +43,23 @@ export const about = defineType({
       validation: (rule) => rule.required().min(1),
     }),
     defineField({
+      name: "resumeFile",
+      title: "Resume file",
+      type: "file",
+      // The ordinary case: drop the PDF here and the button points at the
+      // asset Sanity stores. Nothing to rebuild, nothing to commit — replacing
+      // the file replaces what the button serves.
+      options: { accept: ".pdf,application/pdf" },
+      description:
+        "Upload the PDF. This wins over the link below; use the link only to point somewhere else entirely.",
+    }),
+    defineField({
       name: "resumeUrl",
       title: "Resume link",
       type: "string",
       description:
-        "Where the button goes. A path in `public/` (`/resume.pdf`) or a full URL. Left empty it falls back to /resume.pdf.",
+        "Only used when no file is uploaded. A path in `public/` (`/resume.pdf`) or a full URL. Left empty it falls back to /resume.pdf.",
+      hidden: ({ document }) => Boolean(document?.resumeFile),
     }),
     defineField({
       name: "photos",

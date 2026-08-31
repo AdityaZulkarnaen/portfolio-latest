@@ -136,7 +136,7 @@ export const aboutQuery = defineQuery(`
     name,
     "roles": coalesce(roles, []),
     "bio": coalesce(bio, []),
-    "resumeUrl": resumeUrl,
+    "resumeUrl": coalesce(resumeFile.asset->url, resumeUrl),
     "photos": coalesce(photos[]{
       "image": select(defined(asset) => {_type, asset, hotspot, crop}),
       "alt": coalesce(alt, ""),
