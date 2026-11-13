@@ -13,7 +13,8 @@
     "sanity:typegen": "sanity schema extract && sanity typegen generate",
     "budget": "node scripts/bundle-budget.mjs",
     "budget:check": "node scripts/bundle-budget.mjs --check",
-    "icon": "node scripts/gen-icon.mjs"
+    "icon": "node scripts/gen-icon.mjs",
+    "portrait": "node scripts/gen-ascii-portrait.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",

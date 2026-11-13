@@ -7,6 +7,7 @@ import { useFinePointer, useReducedMotion } from "@/lib/use-media-query";
 import { useScrollVelocity } from "@/lib/use-smooth-scroll";
 import { useWebGLSupport } from "@/lib/use-webgl-support";
 import { META_TYPE } from "@/lib/site-config";
+import { HERO_BACKDROP } from "./hero-backdrop";
 import HeroCanvas from "./hero-canvas";
 import { heroCopy } from "./hero-copy";
 import HeroHud from "./hero-hud";
@@ -478,6 +479,7 @@ export default function Hero() {
           and it is the same element the rail reads for its ticks. */}
       <section
         ref={sectionRef}
+        data-backdrop={HERO_BACKDROP}
         className="sticky top-0 h-svh w-full overflow-hidden bg-void"
       >
         {/* Never display:none — a hidden node would not trigger the font load. */}
@@ -492,6 +494,7 @@ export default function Hero() {
         {webgl ? (
           <div aria-hidden className="absolute inset-0">
             <HeroCanvas
+              backdrop={HERO_BACKDROP}
               motionRef={motionRef}
               quality={quality}
               pointerEnabled={!reducedMotion}
@@ -505,7 +508,16 @@ export default function Hero() {
         {/* Progressive-enhancement base: the same rake, the same palette, one
             repeating gradient. It ships in the server HTML and is what a
             visitor without WebGL keeps. */}
-        {!webgl ? (
+        {!webgl && HERO_BACKDROP === "portrait" ? (
+          // eslint-disable-next-line @next/next/no-img-element -- decorative, client-only fallback; next/image buys nothing for one pre-sized webp
+          <img
+            aria-hidden
+            alt=""
+            src="/hero/portrait.webp"
+            className="pointer-events-none absolute bottom-0 right-[4%] h-[96%] w-auto max-w-none object-contain opacity-60 max-sm:right-1/2 max-sm:top-[6%] max-sm:h-[74%] max-sm:translate-x-1/2"
+          />
+        ) : null}
+        {!webgl && HERO_BACKDROP === "currents" ? (
           <div
             aria-hidden
             className="pointer-events-none absolute inset-0 bg-[linear-gradient(0deg,#08080a_30%,#2c1155_100%)]"
@@ -519,7 +531,7 @@ export default function Hero() {
             turbulent lower-right stays readable through the thin end of it. */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-2/3 bg-gradient-to-t from-void via-void/70 to-transparent"
+          className={`pointer-events-none absolute inset-x-0 bottom-0 z-[5] ${HERO_BACKDROP === "portrait" ? "h-1/2" : "h-2/3"} bg-gradient-to-t from-void via-void/70 to-transparent`}
         />
 
         <div

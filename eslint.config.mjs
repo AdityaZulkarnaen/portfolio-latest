@@ -27,6 +27,7 @@ const eslintConfig = defineConfig([
     ignores: [
       "components/**/*-scene.tsx",
       "components/hero/currents-field.tsx",
+      "components/hero/ascii-portrait.tsx",
       "components/tech/logo-tunnel.tsx",
       "components/tech/code-tag.tsx",
       "components/tech/tag-geometry.ts",

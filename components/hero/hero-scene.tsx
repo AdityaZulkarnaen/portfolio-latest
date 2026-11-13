@@ -3,10 +3,13 @@
 import { useState, type RefObject } from "react";
 import { Canvas } from "@react-three/fiber";
 import { PerformanceMonitor } from "@react-three/drei";
+import AsciiPortrait from "./ascii-portrait";
 import CurrentsField from "./currents-field";
+import type { HeroBackdrop } from "./hero-backdrop";
 import type { FieldQuality, HeroMotion } from "./hero-motion";
 
 export type HeroSceneProps = {
+  backdrop: HeroBackdrop;
   motionRef: RefObject<HeroMotion>;
   quality: FieldQuality;
   pointerEnabled: boolean;
@@ -17,6 +20,7 @@ export type HeroSceneProps = {
 };
 
 export default function HeroScene({
+  backdrop,
   motionRef,
   quality,
   pointerEnabled,
@@ -49,13 +53,22 @@ export default function HeroScene({
           resolution is the only lever that matters when a machine cannot keep
           up. Dropping it costs line crispness and nothing else. */}
       <PerformanceMonitor onDecline={() => setMaxDpr(1)} />
-      <CurrentsField
-        motionRef={motionRef}
-        quality={quality}
-        pointerEnabled={pointerEnabled}
-        reducedMotion={reducedMotion}
-        onReady={onReady}
-      />
+      {backdrop === "portrait" ? (
+        <AsciiPortrait
+          motionRef={motionRef}
+          pointerEnabled={pointerEnabled}
+          reducedMotion={reducedMotion}
+          onReady={onReady}
+        />
+      ) : (
+        <CurrentsField
+          motionRef={motionRef}
+          quality={quality}
+          pointerEnabled={pointerEnabled}
+          reducedMotion={reducedMotion}
+          onReady={onReady}
+        />
+      )}
     </Canvas>
   );
 }
