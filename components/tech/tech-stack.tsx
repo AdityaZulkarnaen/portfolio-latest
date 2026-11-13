@@ -18,6 +18,7 @@ import {
   resolveAtlasTile,
   resolveLogoCount,
 } from "./tech-motion";
+import AsciiLayer from "@/components/ascii/ascii-layer";
 
 /** Slabs the chapter reaches up with, matching Chapter .02's takeover. */
 const SLATS = 3;
@@ -400,6 +401,10 @@ export default function TechStack({ tools }: TechStackProps) {
             />
           </div>
         ) : null}
+
+        {/* Dandelion seeds in the air around the tunnel — over the logos,
+            under the heading. */}
+        <AsciiLayer scene="seeds" className="z-[5]" />
 
         {/* Heading in front of the tunnel, as in the reference. This is the
             real heading — the canvas behind it is decorative and aria-hidden. */}

@@ -29,7 +29,11 @@
      no-WebGL fallback both have to match what the GPU is painting. */
   --color-violet: #2c1155;
   --color-lilac: #cba7f5;
-  /* Chapter .02 flips the polarity: a concrete slab laid over the void. */
+  /* Chapter .02's ground: the hero's garden at night — near-black with the
+     green of the hedges in it, so the panel reads as walking into the garden
+     rather than as a slab of some other material laid over it. */
+  --color-moss: #0c1410;
+  /* The concrete slab Chapter .02 used to be. Kept for anything still on it. */
   --color-slab: #97978f;
   --color-slab-deep: #7f7f78;
 
@@ -130,6 +134,9 @@ html.lenis body {
    one stretched box. */
 [data-hi] {
   background-color: var(--color-acid);
+  /* The chip is acid wherever it sits, so its type is always void — on the
+     moss ground the paragraph's own ink would vanish into it. */
+  color: var(--color-void);
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
 }

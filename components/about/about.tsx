@@ -5,10 +5,10 @@ import { gsap, killScrollTriggersIn, useGSAP } from "@/lib/gsap";
 import { useReducedMotion } from "@/lib/use-media-query";
 import { META_TYPE_BASE } from "@/lib/site-config";
 import type { About as AboutContent } from "@/lib/content/types";
-import SiteTexture from "@/components/site-texture";
 import { aboutCopy } from "./about-copy";
 import PhotoFrame from "./photo-frame";
 import RoleMarquee from "./role-marquee";
+import AsciiLayer from "@/components/ascii/ascii-layer";
 
 /** Slabs the panel reaches up with. */
 const SLATS = 3;
@@ -240,7 +240,7 @@ export default function About({ about }: { about: AboutContent }) {
       id="about"
       data-chapter=".02"
       data-chapter-name="About"
-      className="relative z-20 [--about-head:9rem] bg-[#71737D] text-void"
+      className="relative z-20 [--about-head:9rem] bg-moss text-ink"
     >
       {/* Sits directly on the outside of the panel's top edge (`bottom-full`)
           and moves with it — the section's own reach into the space above. */}
@@ -252,22 +252,23 @@ export default function About({ about }: { about: AboutContent }) {
           <span
             key={i}
             data-slat
-            className="w-full flex-1 origin-bottom scale-y-0 bg-[#71737D] will-change-transform"
+            className="w-full flex-1 origin-bottom scale-y-0 bg-moss will-change-transform"
           />
         ))}
       </div>
 
-      {/* Void ink, because this chapter's ground is the slab. Weakest setting
-          on the site: the panel already carries a photo, a marquee and a wall
-          of type, and paper is meant to be felt rather than seen. */}
-      <SiteTexture className="text-void opacity-[0.09]" />
+      {/* The forest: a river winding down the panel under the copy, ivy
+          climbing its edges, fireflies in the air. No paper texture here —
+          the contour lines fought the water for the same space. */}
+      <AsciiLayer scene="river" className="z-0" />
+      <AsciiLayer scene="ivy" className="z-0" />
 
       {/* No `overflow-hidden` here — it would break the sticky children. */}
       <div className="relative">
         {/* Seam + marquee, pinned to the very top of the viewport. */}
-        <div ref={headRef} className="sticky top-0 z-30 bg-[#71737D] pb-2">
+        <div ref={headRef} className="sticky top-0 z-30 bg-moss pb-2">
           <div
-            className={`flex items-center justify-between px-5 py-3 md:px-8 ${META_TYPE_BASE} text-void/55`}
+            className={`flex items-center justify-between px-5 py-3 md:px-8 ${META_TYPE_BASE} text-ink/55`}
           >
             <span>{aboutCopy.seamLeft}</span>
             <span className="flex items-center gap-2">
@@ -312,11 +313,11 @@ export default function About({ about }: { about: AboutContent }) {
                 <div className="shrink-0 overflow-hidden block md:hidden">
                 <p
                   data-rise
-                  className={`${META_TYPE_BASE} text-void md:text-right`}
+                  className={`${META_TYPE_BASE} text-acid md:text-right`}
                 >
                   {aboutCopy.eyebrow}
                   <br />
-                  <span className="text-void/55">{aboutCopy.chapter}</span>
+                  <span className="text-ink/55">{aboutCopy.chapter}</span>
                 </p>
               </div>
                 {about.bio.map((paragraph) => (
@@ -336,7 +337,7 @@ export default function About({ about }: { about: AboutContent }) {
                   <p
                     key={paragraph.slice(0, 24)}
                     data-bio
-                    className="max-w-[34ch] text-start font-mono font-semibold text-[20px] leading-[1.3] text-void sm:text-[22px] md:text-[24px] lg:text-[30px]"
+                    className="max-w-[34ch] text-start font-mono font-semibold text-[20px] leading-[1.3] text-ink sm:text-[22px] md:text-[24px] lg:text-[30px]"
                   >
                     {/* Split in the markup, not at runtime: the full sentence
                         still ships in the HTML, and the spans stay inline so
@@ -409,11 +410,11 @@ export default function About({ about }: { about: AboutContent }) {
               <div className="shrink-0 overflow-hidden hidden md:block">
                 <p
                   data-rise
-                  className={`${META_TYPE_BASE} text-void md:text-right`}
+                  className={`${META_TYPE_BASE} text-acid md:text-right`}
                 >
                   {aboutCopy.eyebrow}
                   <br />
-                  <span className="text-void/55">{aboutCopy.chapter}</span>
+                  <span className="text-ink/55">{aboutCopy.chapter}</span>
                 </p>
               </div>
 
@@ -429,9 +430,9 @@ export default function About({ about }: { about: AboutContent }) {
                 {/* Fill sweep on hover — the acid stays, the ground inverts. */}
                 <span
                   aria-hidden
-                  className="absolute inset-0 origin-left scale-x-0 bg-void transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-x-100"
+                  className="absolute inset-0 origin-left scale-x-0 bg-ink transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-x-100"
                 />
-                <span className="relative transition-colors duration-300 group-hover:text-acid">
+                <span className="relative transition-colors duration-300 group-hover:text-void">
                   {aboutCopy.resume} &gt;
                 </span>
               </a>

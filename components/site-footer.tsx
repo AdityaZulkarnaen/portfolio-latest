@@ -1,6 +1,7 @@
 import FooterWordmark from "@/components/footer-wordmark";
 import SiteTexture from "@/components/site-texture";
 import { footerConfig, META_TYPE_BASE } from "@/lib/site-config";
+import AsciiLayer from "@/components/ascii/ascii-layer";
 
 /**
  * The foot of every page.
@@ -28,6 +29,8 @@ export default function SiteFooter() {
       className="relative z-[38] w-full bg-acid text-void"
     >
       <SiteTexture className="text-void opacity-[0.07]" />
+      {/* The footer is ground: tufts and mushrooms along its edge. */}
+      <AsciiLayer scene="sprouts" cell={15} className="z-0" />
 
       {/* `relative`, for the same reason Chapter .06 needs it. */}
       <div className="relative mx-auto w-full max-w-[110rem] px-5 pb-8 pt-14 sm:pr-[var(--rail-gutter)] md:px-8 md:pb-10 md:pt-20">

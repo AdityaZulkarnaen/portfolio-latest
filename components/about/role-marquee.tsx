@@ -62,7 +62,7 @@ export default function RoleMarquee({ roles }: { roles: string[] }) {
     <div
       ref={rootRef}
       aria-hidden
-      className="relative overflow-hidden border-b border-[#71737D] py-1 select-none"
+      className="relative overflow-hidden border-b border-[#b9ec62]/15 py-1 select-none"
     >
       <div ref={trackRef} className="flex w-max will-change-transform">
         {GROUPS.map((group) => (
@@ -70,10 +70,16 @@ export default function RoleMarquee({ roles }: { roles: string[] }) {
             {roles.map((role) => (
               <span
                 key={role}
-                className="flex shrink-0 items-center font-display font-black text-[clamp(2.25rem,min(8.5vw,11vh),9rem)] leading-[0.95] uppercase tracking-[-0.01em] text-void/90"
+                className="flex shrink-0 items-center font-display font-black text-[clamp(2.25rem,min(8.5vw,11vh),9rem)] leading-[0.95] uppercase tracking-[-0.01em] text-ink/90"
               >
                 {role}
-                <span className="px-[0.35em] text-void/35">—</span>
+                {/* An ASCII bloom between roles — the garden's flower, set
+                    in the mono the rest of the ASCII is drawn in. */}
+                <span className="px-[0.45em] font-mono text-[0.32em] font-bold tracking-normal">
+                  <span className="text-[#cba7f5]">(</span>
+                  <span className="text-acid">@</span>
+                  <span className="text-[#cba7f5]">)</span>
+                </span>
               </span>
             ))}
           </div>
@@ -82,10 +88,10 @@ export default function RoleMarquee({ roles }: { roles: string[] }) {
 
       {/* The band bleeds out of both edges instead of stopping dead at them. */}
       <div
-        className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-[#71737D] to-transparent md:w-28"
+        className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-moss to-transparent md:w-28"
       />
       <div
-        className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-[#71737D] to-transparent md:w-28"
+        className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-moss to-transparent md:w-28"
       />
     </div>
   );

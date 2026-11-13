@@ -8,6 +8,7 @@ import { META_TYPE_BASE } from "@/lib/site-config";
 import { sendMessage, type ContactState } from "@/app/actions/contact";
 import SiteTexture from "@/components/site-texture";
 import { contactCopy } from "./contact-copy";
+import AsciiLayer from "@/components/ascii/ascii-layer";
 
 /**
  * The state the form starts in.
@@ -166,6 +167,8 @@ export default function Contact() {
       </div>
 
       <SiteTexture className="text-acid opacity-[0.14]" />
+      {/* The hero's garden, echoed small under the form. */}
+      <AsciiLayer scene="hedge" className="z-0" />
 
       {/* `relative` is load-bearing: the texture above is absolutely positioned
           and would otherwise paint over this whole column. */}

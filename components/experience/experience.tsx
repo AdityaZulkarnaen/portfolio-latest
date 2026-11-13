@@ -6,6 +6,7 @@ import { useReducedMotion } from "@/lib/use-media-query";
 import { META_TYPE_BASE } from "@/lib/site-config";
 import type { Experience as ExperienceEntry } from "@/lib/content/types";
 import { experienceCopy } from "./experience-copy";
+import AsciiLayer from "@/components/ascii/ascii-layer";
 
 /** Slabs the chapter reaches up with, matching Chapter .02's takeover. */
 const SLATS = 4;
@@ -465,6 +466,9 @@ export default function Experience({ experiences }: ExperienceProps) {
           </li>
         </ul>
       </div>
+      {/* Butterflies over the acid, above the cards: the cards are opaque,
+          so anything under them would only show in the margins. */}
+      <AsciiLayer scene="butterflies" cell={20} className="z-20" />
     </section>
   );
 }

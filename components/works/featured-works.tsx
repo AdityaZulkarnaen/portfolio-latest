@@ -10,6 +10,7 @@ import BlueprintGrid from "./blueprint-grid";
 import WorkCard from "./work-card";
 import SiteTexture from "@/components/site-texture";
 import { worksCopy } from "./works-copy";
+import AsciiLayer from "@/components/ascii/ascii-layer";
 
 /** The line a tile lies flat on, as a fraction of viewport height. */
 const SETTLE = 0.5;
@@ -144,6 +145,8 @@ export default function FeaturedWorks({ works, total }: FeaturedWorksProps) {
       className="relative z-[35] w-full overflow-hidden bg-void"
     >
       <SiteTexture className="text-acid opacity-[0.14]" />
+      {/* Flowers opening in the gaps; the tiles hide the rest. */}
+      <AsciiLayer scene="blooms" className="z-0" />
 
       {/* <BlueprintGrid /> */}
 

@@ -57,6 +57,14 @@ const ACID = 0.15;
 
 /** The ring's colour. `--color-acid`, written out for the canvas. */
 const ACID_INK = "#e1ff00";
+/** What the rim's glyphs are drawn on — the page void, so they read as type. */
+const VOID_INK = "#08080a";
+/**
+ * The rim decodes rather than flashes: each block, on its turn, runs down this
+ * ramp from dense to sparse before the photograph shows through — the same
+ * ramp the hero portrait is drawn with, so the deck speaks the hero's language.
+ */
+const RIM_RAMP = "@%#*+=-:.";
 
 /**
  * How much the per-cell noise moves a block's turn, as a fraction of the
@@ -346,6 +354,9 @@ export default function PhotoFrame({ photos }: { photos: AboutPhoto[] }) {
       paint(index);
     } else {
       const cell = Math.max(Math.round(CELL * scale), 4);
+      const mono =
+        getComputedStyle(document.documentElement).getPropertyValue("--font-geist-mono").trim() ||
+        "monospace";
       const cols = Math.ceil(width / cell);
       const rows = Math.ceil(height / cell);
 
@@ -378,7 +389,9 @@ export default function PhotoFrame({ photos }: { photos: AboutPhoto[] }) {
         ctx.clearRect(0, 0, width, height);
         ctx.drawImage(from, 0, 0);
         ctx.imageSmoothingEnabled = false;
-        ctx.fillStyle = ACID_INK;
+        ctx.font = `700 ${Math.round(cell * 0.92)}px ${mono}`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
 
         for (let row = 0; row < rows; row++) {
           for (let col = 0; col < cols; col++) {
@@ -403,10 +416,16 @@ export default function PhotoFrame({ photos }: { photos: AboutPhoto[] }) {
             if (p < at) continue;
 
             if (p < at + ACID) {
-              // The opening edge: flat acid, one block at a time. Drawn as a
-              // rect rather than sampled from anything, so the ring is the
-              // page's own colour and not a tint of the photograph.
+              // The opening edge: one acid glyph per block on a void cell,
+              // stepping down the ramp as the block's turn runs out — the
+              // ring reads as the photograph being decoded, dense to sparse.
+              // Drawn rather than sampled, so the ring is the page's own
+              // colour and not a tint of the photograph.
+              const k = Math.min(RIM_RAMP.length - 1, Math.floor(((p - at) / ACID) * RIM_RAMP.length));
+              ctx.fillStyle = VOID_INK;
               ctx.fillRect(x, y, cell, cell);
+              ctx.fillStyle = ACID_INK;
+              ctx.fillText(RIM_RAMP[k], x + cell / 2, y + cell / 2);
             } else {
               ctx.drawImage(to, x, y, cell, cell, x, y, cell, cell);
             }
@@ -449,7 +468,7 @@ export default function PhotoFrame({ photos }: { photos: AboutPhoto[] }) {
       <div
         ref={boxRef}
         onClick={depth > 1 ? advance : undefined}
-        className={`relative mx-auto aspect-[4/5] w-full max-w-[20rem] self-center overflow-hidden rounded-[10px] bg-slab-deep shadow-[0_24px_60px_-24px_rgba(8,8,10,0.75)] ring-1 ring-void/25 sm:max-w-[24rem] md:mx-0 md:w-auto md:min-h-0 md:max-w-full md:flex-1 md:self-end ${
+        className={`relative mx-auto aspect-[4/5] w-full max-w-[20rem] self-center overflow-hidden rounded-[10px] bg-void shadow-[0_24px_60px_-24px_rgba(0,0,0,0.9)] ring-1 ring-[#b9ec62]/20 sm:max-w-[24rem] md:mx-0 md:w-auto md:min-h-0 md:max-w-full md:flex-1 md:self-end ${
           depth > 1 ? "cursor-pointer" : ""
         }`}
       >
@@ -475,29 +494,29 @@ export default function PhotoFrame({ photos }: { photos: AboutPhoto[] }) {
 
       </div>
 
-      <div className="mt-4 flex shrink-0 items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-void sm:gap-3 sm:text-[11px] sm:tracking-[0.18em]">
+      <div className="mt-4 flex shrink-0 items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-ink sm:gap-3 sm:text-[11px] sm:tracking-[0.18em]">
         <span className="tabular-nums">
           {aboutCopy.deckLabel} {String(index + 1).padStart(2, "0")}/
           {String(depth).padStart(2, "0")}
         </span>
-        <span className="relative block h-px flex-1 overflow-hidden bg-void/30">
+        <span className="relative block h-px flex-1 overflow-hidden bg-ink/25">
           <span
             key={index}
-            className="absolute inset-0 origin-left scale-x-0 bg-void [animation:deck-dwell_var(--deck-dwell)_linear_forwards] motion-reduce:scale-x-100 motion-reduce:[animation:none]"
+            className="absolute inset-0 origin-left scale-x-0 bg-acid [animation:deck-dwell_var(--deck-dwell)_linear_forwards] motion-reduce:scale-x-100 motion-reduce:[animation:none]"
             style={{ "--deck-dwell": `${DWELL}ms` } as React.CSSProperties}
           />
         </span>
         {/* First thing to go when the column is narrow: the label and the
             counter still say everything the caption does. */}
         {active.caption ? (
-          <span className="hidden text-void/60 sm:inline">{active.caption}</span>
+          <span className="hidden text-ink/60 sm:inline">{active.caption}</span>
         ) : null}
         {depth > 1 ? (
           <button
             type="button"
             onClick={advance}
             aria-label={`Next photo — ${next.alt}`}
-            className="cursor-pointer text-void/60 transition-colors hover:text-void focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-void"
+            className="cursor-pointer text-ink/60 transition-colors hover:text-acid focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acid"
           >
             NEXT &gt;
           </button>
