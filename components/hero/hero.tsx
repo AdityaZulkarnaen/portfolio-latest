@@ -531,7 +531,14 @@ export default function Hero() {
             turbulent lower-right stays readable through the thin end of it. */}
         <div
           aria-hidden
-          className={`pointer-events-none absolute inset-x-0 bottom-0 z-[5] ${HERO_BACKDROP === "portrait" ? "h-1/2" : "h-2/3"} bg-gradient-to-t from-void via-void/70 to-transparent`}
+          className={`pointer-events-none absolute inset-x-0 bottom-0 z-[5] ${
+            HERO_BACKDROP === "portrait"
+              ? // The garden lives along the bottom edge, so the scrim only
+                // grounds the copy: lighter, and on wide screens angled away
+                // from the flowers on the right.
+                "h-1/2 bg-gradient-to-t from-void/90 via-void/45 to-transparent md:bg-gradient-to-tr"
+              : "h-2/3 bg-gradient-to-t from-void via-void/70 to-transparent"
+          }`}
         />
 
         <div

@@ -41,6 +41,24 @@ uniform vec4  uPulses[PULSE_SLOTS]; // x, y, radius (css px), strength
 uniform vec3 uInk;
 uniform vec3 uAcid;
 
+// --- The garden -----------------------------------------------------------
+// Four hedges at four depths. Per layer:
+//   A = (cell scale, bush spacing px, bush size, baseline px)
+//   B = (lift at left edge px, lift at right edge px, left falloff, right falloff)
+//   C = (brightness, bare fraction, parallax px, hanging 0/1)
+uniform vec4  uLayerA[LAYER_COUNT];
+uniform vec4  uLayerB[LAYER_COUNT];
+uniform vec4  uLayerC[LAYER_COUNT];
+uniform vec2  uParallax;     // smoothed pointer, -1..1
+uniform float uGrowFrom;     // screen x (0..1) the garden grows outward from
+uniform float uHover;        // 0..1, pointer present (parts leaves, calls fireflies)
+uniform vec3  uVoid;         // the page ground: what a bush paints over what is behind it
+uniform vec3  uLeafDark;
+uniform vec3  uLeafLight;
+uniform vec3  uFarTint;
+uniform vec3  uLilac;
+uniform vec3  uPink;
+
 const float RAMP_LEN  = float(RAMP_COUNT);
 const float NOISE_LEN = float(NOISE_COUNT);
 const float GLYPHS    = float(GLYPH_COUNT);
@@ -68,6 +86,225 @@ float glyph(float g, vec2 local, vec2 gradX, vec2 gradY) {
   return textureGrad(uAtlas, uv, gradX, gradY).r;
 }
 
+float vnoise(vec2 p) {
+  vec2 i = floor(p);
+  vec2 f = fract(p);
+  f = f * f * (3.0 - 2.0 * f);
+  float a = hash12(i);
+  float b = hash12(i + vec2(1.0, 0.0));
+  float c = hash12(i + vec2(0.0, 1.0));
+  float d = hash12(i + vec2(1.0, 1.0));
+  return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+}
+
+/* ---------------------------------------------------------------------------
+   The garden: hedges of bushes at four depths.
+
+   Depth is sold three ways at once, because any one alone reads as a flat
+   sticker: each layer has its own glyph size (far = small type, near = big),
+   its own brightness with the far ones washed toward a cool tint, and its own
+   parallax against the pointer. Two layers sit behind the portrait, one in
+   front of it, and one hangs from the top corners — so the garden frames the
+   frame instead of lining the bottom of it.
+
+   A bush is three overlapping lobes with a noise-chewed edge, sat on a
+   baseline that lifts toward the screen edges; below the baseline is the
+   hedge mass itself, darkening with depth. Shading is a top light on the lobe
+   normal, broken into leaf clumps by a second noise.
+   --------------------------------------------------------------------------- */
+
+float baseline(float xn, vec4 A, vec4 B) {
+  return A.w
+    + B.x * exp(-pow(xn / max(B.z, 0.001), 2.0))
+    + B.y * exp(-pow((1.0 - xn) / max(B.w, 0.001), 2.0));
+}
+
+/* > 0 inside the hedge (1 at a lobe's heart). Writes the lit shade. */
+float hedge(vec2 p, int li, float hanging, out float shade, out float lit) {
+  vec4 A = uLayerA[li];
+  vec4 B = uLayerB[li];
+  vec4 C = uLayerC[li];
+  float lf = float(li);
+  float spacing = A.y;
+  // Hanging hedges are evaluated upside down, so the same vector lights their
+  // lower edge — the side that is actually on screen — as if from the
+  // fireflies below.
+  vec2 light = normalize(vec2(-0.35, 0.94));
+
+  float base = baseline(p.x / uResolution.x, A, B);
+  float best = -1.0;
+  shade = 0.0;
+  lit = 0.0;
+
+  // The mass under the bushes: solid, and darker the deeper it goes.
+  // Sits a little below the baseline so the crowns stand clear of it.
+  float under = (base - spacing * 0.35 - p.y) / (spacing * 0.6);
+  if (under > 0.0) {
+    best = min(under, 1.0);
+    shade = mix(0.3, 0.06, clamp(under, 0.0, 1.0));
+    lit = 0.25;
+  }
+
+  float j0 = floor(p.x / spacing);
+  for (int k = -1; k <= 1; k++) {
+    float j = j0 + float(k);
+    float s = hash12(vec2(j, 100.0 + lf * 13.0));
+    if (s < C.y) continue;
+    float cx = (j + 0.5 + (s - 0.5) * 0.7) * spacing;
+    float by = baseline(cx / uResolution.x, A, B);
+    float r = spacing * A.z * (0.7 + 0.5 * hash12(vec2(j, 101.0 + lf * 13.0)));
+    // Grows out from under the face during the intro, sinks on the way out.
+    float grow = smoothstep(0.0, 0.5, uReveal * 1.3 - abs(cx / uResolution.x - uGrowFrom) * 0.5 - s * 0.1);
+    float sink = 1.0 - smoothstep(0.0, 0.7, uDispersion * 1.3 - s * 0.25);
+    r *= grow * sink;
+    if (r < 2.0) continue;
+
+    // The crown sways; the root does not.
+    float sway = sin(uTime * 0.9 + s * 6.283) * 0.06 * r * clamp((p.y - by) / r, 0.0, 1.5);
+    vec2 q = p - vec2(sway, 0.0);
+
+    for (int l = 0; l < 3; l++) {
+      // A dome: the crown lobe high, two shoulders lower and wider apart.
+      vec2 c = l == 0 ? vec2(cx, by + r * 0.45)
+             : l == 1 ? vec2(cx - r * 0.66, by + r * 0.05)
+             :          vec2(cx + r * 0.62, by);
+      float rl = l == 0 ? r : l == 1 ? r * 0.72 : r * 0.66;
+      vec2 dv = (q - c) / rl;
+      float d = length(dv) + (vnoise(q / (rl * 0.22) + s * 17.0 + float(l) * 3.1) - 0.5) * 0.3;
+      float inside = 1.0 - d;
+      if (inside > best) {
+        best = inside;
+        lit = clamp(dot(normalize(dv + 1e-4), light) * 0.5 + 0.5, 0.0, 1.0);
+        // Lit skin, shadowed heart — exaggerated, so each lobe reads as a
+        // ball and not as a patch of texture.
+        shade = mix(0.1, 1.0, lit * lit) * mix(0.3, 1.0, smoothstep(0.1, 0.8, d));
+      }
+    }
+  }
+  return best;
+}
+
+/* One hedge layer, on its own grid. Returns (colour, ink). */
+vec4 foliage(int li, vec2 frag, vec2 fdx, vec2 fdy, vec2 cellSize, out float cover) {
+  cover = 0.0;
+  vec4 A = uLayerA[li];
+  vec4 C = uLayerC[li];
+  float lf = float(li);
+  float hanging = C.w;
+
+  vec2 cs = cellSize * A.x;
+  vec2 f = frag + uParallax * C.z;
+  // The pointer pushes leaves aside.
+  vec2 away = f - uPointer;
+  float dp = length(away);
+  f += away / max(dp, 1.0) * 20.0 * A.x * exp(-dp / 95.0) * uHover;
+
+  vec2 gp = f / cs;
+  vec2 cell = floor(gp);
+  vec2 local = fract(gp);
+  vec2 ctr = (cell + 0.5) * cs;
+  vec2 probe = hanging > 0.5 ? vec2(ctr.x, uResolution.y - ctr.y) : ctr;
+
+  float shade, lit;
+  float inside = hedge(probe, li, hanging, shade, lit);
+  if (inside <= 0.0) return vec4(0.0);
+
+  float cseed = hash12(cell + lf * 311.0);
+  // A ragged, leafy outline rather than a clean one.
+  if (inside < 0.06 && cseed > inside / 0.06) return vec4(0.0);
+
+  // From here on the cell is bush: it hides whatever is behind it. Without
+  // this every layer showed through every other and the garden read as one
+  // grey texture with no shapes in it.
+  cover = 1.0;
+
+  // Leaf clusters: darker seams between clumps give the surface its lumps.
+  float clumps = vnoise(ctr / (cs.y * 2.6) + lf * 5.0);
+  float dens = shade * mix(0.45, 1.15, smoothstep(0.25, 0.7, clumps));
+
+  // The silhouette, drawn: a bright rim where the light catches the edge,
+  // a dim one round the shadow side, so every bush is a closed shape.
+  float rim = 1.0 - smoothstep(0.0, 0.14, inside);
+  float rimBright = rim * smoothstep(0.35, 0.8, lit);
+  dens = max(dens, rim * mix(0.32, 0.95, lit));
+  dens = clamp(dens, 0.0, 1.0);
+
+  // Rustle: always a little, a lot under the pointer.
+  float stir = exp(-length(ctr - uPointer) / 110.0) * uHover;
+  float tick = floor(uTime * (2.0 + stir * 10.0) + cseed * 13.0);
+  float roll = hash13(vec3(cell, tick + lf * 7.0));
+  if (roll < 0.05 + stir * 0.6) dens = clamp(dens + (roll < 0.025 + stir * 0.3 ? 0.18 : -0.18), 0.0, 1.0);
+  if (dens < 0.1) return vec4(0.0);
+
+  float gi = float(FOL_START) + floor(dens * float(FOL_COUNT - 1) + 0.5);
+  float bright = C.x;
+  vec3 col = mix(uLeafDark, uLeafLight, pow(max(shade, rimBright), 1.1)) * (0.8 + 0.35 * stir);
+  // Atmosphere: the dimmer the layer, the further away, the cooler it reads.
+  col = mix(col, uFarTint, (1.0 - bright) * 0.75) * bright;
+
+  // Blossoms on the sunlit skin of the nearer hedges.
+  if (bright > 0.6 && shade > 0.55 && hash12(cell + 977.0 + lf) > 0.955) {
+    float kind = hash12(cell + 31.0 + lf);
+    float tw = 0.75 + 0.25 * sin(uTime * 2.4 + cseed * 30.0);
+    gi = kind < 0.4 ? float(G_AT) : kind < 0.75 ? float(G_STAR) : float(G_O);
+    col = (kind < 0.33 ? uLilac : kind < 0.66 ? uPink : uAcid) * tw;
+  }
+  // Now and then a leaf catches the light.
+  if (hash13(vec3(cell, floor(uTime * 1.3 + cseed * 9.0) + lf)) < 0.012 * bright) col = uAcid;
+
+  vec2 gx = fdx / cs / vec2(GLYPHS, 1.0);
+  vec2 gy = fdy / cs / vec2(GLYPHS, 1.0);
+  float ink = glyph(gi, local, gx, gy);
+  return vec4(col, ink);
+}
+
+void over(inout vec4 acc, vec3 c, float a) {
+  acc.rgb = c * a + acc.rgb * (1.0 - a);
+  acc.a = a + acc.a * (1.0 - a);
+}
+
+/* Fireflies: drift up out of the hedges, wander, wink out near the top.
+   Each one is a glyph in whichever cell it is over, plus a soft halo drawn
+   per pixel so the light spills past the grid. Returns the halo; writes the
+   glyph when this cell holds one. */
+float fireflies(vec2 frag, vec2 cell, vec2 cellSize, out float g, out vec3 col) {
+  g = 0.0;
+  col = vec3(0.0);
+  float halo = 0.0;
+  float appear = smoothstep(0.55, 1.0, uReveal) * (1.0 - smoothstep(0.1, 0.6, uDispersion));
+  if (appear <= 0.0) return 0.0;
+
+  for (int i = 0; i < FIREFLY_COUNT; i++) {
+    float fi = float(i);
+    float h1 = hash12(vec2(fi, 3.1));
+    float h2 = hash12(vec2(fi, 7.7));
+    float h3 = hash12(vec2(fi, 13.3));
+    float life = fract(uTime * (0.018 + 0.026 * h3) + h1);
+    vec2 p = vec2(
+      h2 * uResolution.x + sin(uTime * (0.35 + h1 * 0.4) + fi * 2.1) * 46.0,
+      mix(uResolution.y * 0.06, uResolution.y * 0.95, pow(life, 1.15)) + sin(uTime * 0.9 + fi * 1.7) * 16.0
+    );
+    // Drawn toward the pointer, a little.
+    vec2 toP = uPointer - p;
+    p += toP * 0.3 * exp(-length(toP) / 220.0) * uHover;
+
+    float blink = 0.55 + 0.45 * sin(uTime * (1.6 + h3 * 2.0) + fi * 5.0);
+    float fade = sin(life * 3.14159) * blink * appear;
+    vec3 tint = h2 > 0.72 ? uLilac : uAcid;
+
+    // Near ones are bigger and brighter: the halo carries depth too.
+    float rad = mix(12.0, 36.0, h3);
+    float d = distance(frag, p);
+    halo += fade * exp(-d * d / (rad * rad)) * mix(0.25, 0.5, h3);
+
+    if (floor(p.x / cellSize.x) == cell.x && floor(p.y / cellSize.y) == cell.y && fade > 0.15) {
+      g = blink > 0.75 ? float(G_STAR) : float(G_PLUS);
+      col = tint * (0.6 + 0.4 * fade);
+    }
+  }
+  return halo;
+}
+
 void main() {
   vec2 frag = gl_FragCoord.xy / uDpr;
 
@@ -85,6 +322,8 @@ void main() {
   // pixel of the quad is still running.
   vec2 gradX = dFdx(gridPos) / vec2(GLYPHS, 1.0);
   vec2 gradY = dFdy(gridPos) / vec2(GLYPHS, 1.0);
+  vec2 fdx = dFdx(frag);
+  vec2 fdy = dFdy(frag);
 
   vec2 sampleAt = centre;
 
@@ -169,10 +408,6 @@ void main() {
   float noiseG = RAMP_LEN + floor(hash13(vec3(cellKey, noiseTick + 3.0)) * NOISE_LEN);
   float useText = decoded * (1.0 - useNoise);
   float g = useNoise > 0.5 ? noiseG : (useText > 0.5 ? textG : idx);
-  if (g < 0.5) discard;
-
-  float ink = glyph(g, local, gradX, gradY);
-  if (ink < 0.004) discard;
 
   // --- Colour ---------------------------------------------------------------
   vec3 col = uInk * bright;
@@ -190,8 +425,40 @@ void main() {
       : uInk * 0.11;
   }
   col = mix(col, uAcid, flash);
+  float fade = 1.0 - melt * 0.6;
 
-  float alpha = ink * uOpacity * (1.0 - melt * 0.6);
-  gl_FragColor = vec4(col, alpha);
+  // --- Compositing, back to front --------------------------------------------
+  // Hedges 0 and 1 are behind the portrait, so they are skipped wherever the
+  // silhouette is: two grids of glyphs interleaving would turn the face to mush.
+  // Each hedge first lays down ground over its own silhouette (cover), then
+  // its glyphs: nearer bushes hide farther ones, which is what makes them
+  // read as separate objects at separate depths.
+  vec4 acc = vec4(0.0);
+  float cov;
+  if (body < 0.5) {
+    vec4 l0 = foliage(0, frag, fdx, fdy, cellSize, cov);
+    over(acc, uVoid, cov);
+    over(acc, l0.rgb, l0.a);
+    vec4 l1 = foliage(1, frag, fdx, fdy, cellSize, cov);
+    over(acc, uVoid, cov);
+    over(acc, l1.rgb, l1.a);
+  }
+  float pInk = g > 0.5 ? glyph(g, local, gradX, gradY) * fade : 0.0;
+  over(acc, col, pInk);
+  vec4 l2 = foliage(2, frag, fdx, fdy, cellSize, cov);
+  over(acc, uVoid, cov);
+  over(acc, l2.rgb, l2.a);
+  vec4 l3 = foliage(3, frag, fdx, fdy, cellSize, cov);
+  over(acc, uVoid, cov);
+  over(acc, l3.rgb, l3.a);
+
+  float fg; vec3 fcol;
+  float halo = min(fireflies(frag, cell, cellSize, fg, fcol), 0.6);
+  vec3 haloCol = mix(uAcid, vec3(1.0, 0.95, 0.7), 0.25);
+  over(acc, haloCol, halo * 0.85);
+  if (fg > 0.5) over(acc, fcol, glyph(fg, local, gradX, gradY));
+
+  if (acc.a < 0.004) discard;
+  gl_FragColor = vec4(acc.rgb / acc.a, acc.a * uOpacity);
 }
 `;

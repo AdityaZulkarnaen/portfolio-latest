@@ -176,7 +176,7 @@ async function writeField() {
   const size = (f) => `${(fs.statSync(f).size / 1024).toFixed(1)} KB`;
   console.log(`field    ${FIELD_W}x${FIELD_H}  ${size(FIELD_OUT)}  -> ${path.relative(ROOT, FIELD_OUT)}`);
   console.log(`fallback ${size(FALLBACK_OUT)}  -> ${path.relative(ROOT, FALLBACK_OUT)}`);
-  console.log(`aspect   ${(FIELD_W / FIELD_H).toFixed(4)} (w/h) — PORTRAIT_ASPECT in ascii-portrait.tsx`);
+  console.log(`aspect   ${(FIELD_W / FIELD_H).toFixed(4)} (w/h) — read from the texture at runtime`);
 }
 
 /**

@@ -15,8 +15,9 @@ import { asciiFragmentShader } from "./shaders/ascii.frag";
 
 /** Baked by `npm run portrait`. */
 const FIELD_URL = "/hero/portrait-field.png";
-/** Width / height of the baked field — printed by the bake script. */
-const PORTRAIT_ASPECT = 0.8446;
+/** Fallback width / height until the field has loaded. The real value is
+ *  read off the texture, so swapping the photo never needs an edit here. */
+const DEFAULT_ASPECT = 0.85;
 /** Where the lock starts, in portrait uv (y up): between the lenses. */
 const FOCUS: [number, number] = [0.5, 0.6];
 
@@ -33,12 +34,33 @@ const NOISE = "ABCDEFGHJKLMNPRSTUVXYZ0123456789/\\[]{}<>?!$";
  */
 const XRAY_TEXT = `${heroCopy.wordmark} ${heroCopy.surname} // CREATIVE FRONTEND DEVELOPER // REACT  NEXT.JS  THREE.JS  GLSL  GSAP  TYPESCRIPT // ${heroCopy.status} // `.toUpperCase();
 
-/** Every glyph the atlas holds: ramp, noise, then what the copy adds. */
+/** Leaf density ramp, sparse → dense. Its own contiguous block in the atlas
+ *  (duplicates of ramp glyphs included) so the shader can index it as a run. */
+const FOLIAGE = ".:;*o&%@";
+
+/** Every glyph the atlas holds: ramp, noise, what the copy adds, blossoms,
+ *  then the foliage run. */
 const GLYPHS = (() => {
   let out = RAMP + NOISE;
-  for (const ch of XRAY_TEXT) if (!out.includes(ch)) out += ch;
-  return out;
+  for (const ch of XRAY_TEXT + "o") if (!out.includes(ch)) out += ch;
+  return out + FOLIAGE;
 })();
+
+/** Atlas indices the garden needs, handed to the shader as `#define`s. */
+const GARDEN_DEFINES = {
+  G_AT: GLYPHS.indexOf("@"),
+  G_STAR: GLYPHS.indexOf("*"),
+  G_PLUS: GLYPHS.indexOf("+"),
+  G_O: GLYPHS.indexOf("o"),
+  FOL_START: GLYPHS.length - FOLIAGE.length,
+  FOL_COUNT: FOLIAGE.length,
+};
+
+/** Hedges, back to front: far, mid (both behind the portrait), near, canopy. */
+const LAYER_COUNT = 4;
+
+/** Fireflies in the air at once. Each costs a few ops per pixel. */
+const FIREFLY_COUNT = 26;
 
 /** Mono advance as a fraction of the cell height. Geist Mono is 0.6em. */
 const CHAR_W = 0.6;
@@ -48,6 +70,16 @@ const ATLAS_W = Math.round(ATLAS_H * CHAR_W);
 
 const INK = "#f2f2f0";
 const ACID = "#e1ff00";
+/* The garden. Green that leans toward the acid where the light hits, so the
+   brand colour reads as sun on the leaves rather than as a second palette;
+   the far hedges wash toward a cool violet (the Currents ground) for depth.
+   Lilac is the Currents line colour, pink its streak. */
+const VOID = "#08080a";
+const LEAF_DARK = "#173f27";
+const LEAF_LIGHT = "#b9ec62";
+const FAR_TINT = "#2a2f52";
+const LILAC = "#cba7f5";
+const PINK = "#ff5fa2";
 
 const PULSE_SLOTS = 4;
 const PULSE_LIFE = 1.3;
@@ -71,6 +103,54 @@ function cellFor(width: number): number {
   return width < 640 ? 8 : width < 1024 ? 9.5 : 11;
 }
 
+type Layer = {
+  /** Glyph size relative to the portrait's cell. Far = small type. */
+  scale: number;
+  /** Bush spacing and size (fraction of spacing). */
+  spacing: number;
+  size: number;
+  /** Baseline height, and how far it climbs at each screen edge. */
+  base: number;
+  liftL: number;
+  liftR: number;
+  /** How far in from each edge the climb reaches, as a fraction of width. */
+  reachL: number;
+  reachR: number;
+  /** 1 = nearest/brightest; lower washes toward FAR_TINT. */
+  bright: number;
+  /** Fraction of bush slots left empty. */
+  bare: number;
+  /** Parallax travel in css px at full pointer deflection. */
+  parallax: number;
+  /** Hangs from the top edge instead of growing from the bottom. */
+  hanging: boolean;
+};
+
+/**
+ * The four hedges for a viewport, in css px.
+ *
+ * Landscape keeps the lower left low — that is where the wordmark and copy
+ * sit — and lets the hedges climb around the portrait on the right; the
+ * canopy hangs mostly from the top left, balancing the face on the right.
+ * Portrait screens climb evenly at both edges and hang a lighter canopy.
+ */
+function gardenLayers(w: number, h: number): Layer[] {
+  if (w >= h) {
+    return [
+      { scale: 0.62, spacing: w * 0.07, size: 0.95, base: h * 0.3, liftL: h * 0.05, liftR: h * 0.1, reachL: 0.25, reachR: 0.25, bright: 0.5, bare: 0.15, parallax: 6, hanging: false },
+      { scale: 0.85, spacing: w * 0.11, size: 0.85, base: h * 0.09, liftL: h * 0.1, liftR: h * 0.2, reachL: 0.18, reachR: 0.22, bright: 0.78, bare: 0.3, parallax: 13, hanging: false },
+      { scale: 1.45, spacing: w * 0.16, size: 0.8, base: -h * 0.07, liftL: h * 0.16, liftR: h * 0.3, reachL: 0.14, reachR: 0.16, bright: 1, bare: 0.3, parallax: 30, hanging: false },
+      { scale: 1.25, spacing: w * 0.1, size: 0.95, base: -h * 0.14, liftL: h * 0.2, liftR: h * 0.08, reachL: 0.17, reachR: 0.1, bright: 0.85, bare: 0.2, parallax: 24, hanging: true },
+    ];
+  }
+  return [
+    { scale: 0.6, spacing: w * 0.16, size: 0.95, base: h * 0.3, liftL: h * 0.04, liftR: h * 0.04, reachL: 0.3, reachR: 0.3, bright: 0.5, bare: 0.15, parallax: 4, hanging: false },
+    { scale: 0.85, spacing: w * 0.24, size: 0.85, base: h * 0.15, liftL: h * 0.1, liftR: h * 0.1, reachL: 0.25, reachR: 0.25, bright: 0.78, bare: 0.3, parallax: 8, hanging: false },
+    { scale: 1.35, spacing: w * 0.34, size: 0.8, base: -h * 0.05, liftL: h * 0.14, liftR: h * 0.18, reachL: 0.25, reachR: 0.25, bright: 1, bare: 0.25, parallax: 18, hanging: false },
+    { scale: 1.2, spacing: w * 0.3, size: 0.8, base: -h * 0.09, liftL: h * 0.12, liftR: h * 0.1, reachL: 0.3, reachR: 0.3, bright: 0.85, bare: 0.25, parallax: 14, hanging: true },
+  ];
+}
+
 /**
  * Where the portrait sits, in css px with the origin bottom-left.
  *
@@ -79,15 +159,15 @@ function cellFor(width: number): number {
  * centred, hung from just under the nav, with the copy laid over the
  * shoulders — the gradient scrim is what keeps that readable.
  */
-function portraitRect(w: number, h: number): [number, number, number, number] {
+function portraitRect(w: number, h: number, aspect: number): [number, number, number, number] {
   if (w >= h) {
     const ph = h * 0.96;
-    const pw = ph * PORTRAIT_ASPECT;
+    const pw = ph * aspect;
     const x0 = Math.max(w * 0.96 - pw, w * 0.5 - pw * 0.5);
     return [x0, 0, pw, ph];
   }
-  const ph = Math.min(h * 0.74, (w * 1.15) / PORTRAIT_ASPECT);
-  const pw = ph * PORTRAIT_ASPECT;
+  const ph = Math.min(h * 0.74, (w * 1.15) / aspect);
+  const pw = ph * aspect;
   return [(w - pw) / 2, h - ph - h * 0.06, pw, ph];
 }
 
@@ -213,6 +293,9 @@ export default function AsciiPortrait({
         NOISE_COUNT: NOISE.length,
         GLYPH_COUNT: GLYPHS.length,
         TEXT_LEN: [...XRAY_TEXT].length,
+        FIREFLY_COUNT,
+        LAYER_COUNT,
+        ...GARDEN_DEFINES,
       },
       uniforms: {
         uField: { value: null },
@@ -237,6 +320,18 @@ export default function AsciiPortrait({
         },
         uInk: { value: srgb(INK) },
         uAcid: { value: srgb(ACID) },
+        uLayerA: { value: Array.from({ length: LAYER_COUNT }, () => new THREE.Vector4()) },
+        uLayerB: { value: Array.from({ length: LAYER_COUNT }, () => new THREE.Vector4()) },
+        uLayerC: { value: Array.from({ length: LAYER_COUNT }, () => new THREE.Vector4()) },
+        uParallax: { value: new THREE.Vector2() },
+        uGrowFrom: { value: 0.7 },
+        uHover: { value: 0 },
+        uVoid: { value: srgb(VOID) },
+        uLeafDark: { value: srgb(LEAF_DARK) },
+        uLeafLight: { value: srgb(LEAF_LIGHT) },
+        uFarTint: { value: srgb(FAR_TINT) },
+        uLilac: { value: srgb(LILAC) },
+        uPink: { value: srgb(PINK) },
       },
       transparent: true,
       depthWrite: false,
@@ -265,9 +360,18 @@ export default function AsciiPortrait({
     u.uResolution.value.set(size.width, size.height);
     u.uCell.value = cellFor(size.width);
     u.uDecodeRadius.value = size.width < 640 ? 95 : 150;
-    u.uRect.value.set(...portraitRect(size.width, size.height));
+    const img = textures?.field.image as { width: number; height: number } | undefined;
+    const aspect = img ? img.width / img.height : DEFAULT_ASPECT;
+    const rect = portraitRect(size.width, size.height, aspect);
+    u.uRect.value.set(...rect);
+    gardenLayers(size.width, size.height).forEach((l, i) => {
+      (u.uLayerA.value[i] as THREE.Vector4).set(l.scale, l.spacing, l.size, l.base);
+      (u.uLayerB.value[i] as THREE.Vector4).set(l.liftL, l.liftR, l.reachL, l.reachR);
+      (u.uLayerC.value[i] as THREE.Vector4).set(l.bright, l.bare, l.parallax, l.hanging ? 1 : 0);
+    });
+    u.uGrowFrom.value = (rect[0] + rect[2] / 2) / size.width;
     invalidate();
-  }, [size.width, size.height, u, invalidate]);
+  }, [size.width, size.height, textures, u, invalidate]);
 
   useFrame((state, delta) => {
     if (!textures) return;
@@ -283,6 +387,7 @@ export default function AsciiPortrait({
       u.uOpacity.value = motion.opacity;
       u.uScan.value = -1;
       u.uDecode.value = 0;
+      u.uHover.value = 0;
     } else {
       clock.current += dt;
       const t = clock.current;
@@ -303,6 +408,21 @@ export default function AsciiPortrait({
       const w = state.size.width;
       const h = state.size.height;
       u.uPointer.value.set(((motion.pointerX + 1) / 2) * w, ((motion.pointerY + 1) / 2) * h);
+      // Hover for the garden is not gated on the reveal: grass parting under
+      // the cursor while it is still growing is part of the fun.
+      u.uHover.value = THREE.MathUtils.damp(
+        u.uHover.value,
+        pointerEnabled ? motion.pointerInside : 0,
+        5,
+        dt,
+      );
+      // Parallax follows the pointer softly and drifts home when it leaves.
+      const par = u.uParallax.value as THREE.Vector2;
+      const inside = pointerEnabled ? motion.pointerInside : 0;
+      par.set(
+        THREE.MathUtils.damp(par.x, motion.pointerX * inside, 3, dt),
+        THREE.MathUtils.damp(par.y, motion.pointerY * inside, 3, dt),
+      );
       u.uDecode.value = THREE.MathUtils.damp(
         u.uDecode.value,
         pointerEnabled && motion.reveal >= 1 ? motion.pointerInside : 0,
