@@ -61,7 +61,7 @@ function prefersShortIntro(): boolean {
 
 /** Shared between the two wordmark lines so they cannot drift apart. */
 const WORDMARK_TYPE =
-  "block font-display text-[clamp(2.5rem,8.5vw,7.5rem)] font-black uppercase leading-[0.86] tracking-[-0.045em]";
+  "block font-display text-[clamp(2rem,7.5vw,7.5rem)] sm:text-[clamp(2.5rem,8.5vw,7.5rem)] font-black uppercase leading-[0.86] tracking-[-0.045em]";
 
 /**
  * The outlined line has the font's own kerning switched off, and only it.
@@ -514,7 +514,7 @@ export default function Hero() {
             aria-hidden
             alt=""
             src="/hero/portrait.webp"
-            className="pointer-events-none absolute bottom-0 right-[4%] h-[96%] w-auto max-w-none object-contain opacity-60 max-sm:right-1/2 max-sm:top-[6%] max-sm:h-[74%] max-sm:translate-x-1/2"
+            className="pointer-events-none absolute bottom-0 right-[4%] h-[96%] w-auto max-w-none object-contain opacity-60 max-sm:right-1/2 max-sm:top-[4%] max-sm:h-[54%] max-sm:translate-x-1/2"
           />
         ) : null}
         {!webgl && HERO_BACKDROP === "currents" ? (
@@ -536,7 +536,7 @@ export default function Hero() {
               ? // The garden lives along the bottom edge, so the scrim only
                 // grounds the copy: lighter, and on wide screens angled away
                 // from the flowers on the right.
-                "h-1/2 bg-gradient-to-t from-void/90 via-void/45 to-transparent md:bg-gradient-to-tr"
+                "h-3/5 sm:h-1/2 bg-gradient-to-t from-void/90 via-void/45 to-transparent md:bg-gradient-to-tr"
               : "h-2/3 bg-gradient-to-t from-void via-void/70 to-transparent"
           }`}
         />
@@ -548,7 +548,7 @@ export default function Hero() {
           {/* The wordmark below is decorative; this is what a screen reader gets. */}
           <h1 className="sr-only">{heroCopy.heading}</h1>
 
-          <div aria-hidden className="mb-7 md:mb-9">
+          <div aria-hidden className="mb-4 sm:mb-6 md:mb-9">
             <div className="overflow-hidden">
               <span data-reveal className={`${WORDMARK_TYPE} text-ink`}>
                 {heroCopy.wordmark}
@@ -566,9 +566,9 @@ export default function Hero() {
           </div>
 
           <footer
-            className={`flex md:justify-between flex-col md:flex-row gap-8 md:items-end ${META_TYPE}`}
+            className={`flex md:justify-between flex-col md:flex-row gap-4 sm:gap-6 md:gap-8 md:items-end ${META_TYPE}`}
           >
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
               <div className="overflow-hidden">
                 <p data-reveal data-scramble className="text-acid">
                   {heroCopy.eyebrow}
@@ -578,14 +578,14 @@ export default function Hero() {
                 <p
                   data-reveal
                   data-scramble-soft
-                  className="max-w-[52ch] font-mono text-lg normal-case leading-relaxed tracking-normal text-ink"
+                  className="max-w-[52ch] font-mono text-sm sm:text-base md:text-lg normal-case leading-relaxed tracking-normal text-ink"
                 >
                   {heroCopy.tagline.join(" ")}
                 </p>
               </div>
             </div>
 
-            <div className="space-y-3 md:justify-self-end">
+            <div className="space-y-2 sm:space-y-3 md:justify-self-end">
               <div className="overflow-hidden">
                 <div data-reveal>
                   <HeroHud

@@ -166,9 +166,10 @@ function portraitRect(w: number, h: number, aspect: number): [number, number, nu
     const x0 = Math.max(w * 0.96 - pw, w * 0.5 - pw * 0.5);
     return [x0, 0, pw, ph];
   }
-  const ph = Math.min(h * 0.74, (w * 1.15) / aspect);
+  const ph = Math.min(h * 0.54, (w * 0.96) / aspect);
   const pw = ph * aspect;
-  return [(w - pw) / 2, h - ph - h * 0.06, pw, ph];
+  const topOffset = Math.max(24, h * 0.04);
+  return [(w - pw) / 2, h - ph - topOffset, pw, ph];
 }
 
 async function buildAtlas(): Promise<THREE.CanvasTexture> {
