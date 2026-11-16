@@ -253,7 +253,7 @@ export default function Experience({ experiences }: ExperienceProps) {
     <section
       ref={rootRef}
       id="experience"
-      data-chapter=".05"
+      data-chapter=".06"
       data-chapter-name="Experience"
       // Read by `site-ground.tsx`, which flips the nav, the chapter rail and
       // the pointer trail to void for as long as this ground is under them.

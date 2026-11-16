@@ -30,9 +30,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${archivo.variable} ${blurWeb.variable} ${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-void text-ink">
+      <body className="min-h-full flex flex-col bg-void text-ink" suppressHydrationWarning>
         {/* First thing in the document, and it has to be: it runs while the
             parser is still here, which is before the browser restores the
             scroll position and long before the hero reads it. */}

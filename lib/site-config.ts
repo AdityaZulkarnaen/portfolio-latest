@@ -22,9 +22,10 @@ export const siteConfig = {
     { mark: ".01", label: "Intro", href: "/#hero" },
     { mark: ".02", label: "About", href: "/#about" },
     { mark: ".03", label: "Stack", href: "/#tech" },
-    { mark: ".04", label: "Works", href: "/#work" },
-    { mark: ".05", label: "Experience", href: "/#experience" },
-    { mark: ".06", label: "Contact", href: "/#contact" },
+    { mark: ".04", label: "Activity", href: "/#activity" },
+    { mark: ".05", label: "Works", href: "/#work" },
+    { mark: ".06", label: "Experience", href: "/#experience" },
+    { mark: ".07", label: "Contact", href: "/#contact" },
   ],
 } as const;
 

@@ -1,4 +1,5 @@
 import About from "@/components/about/about";
+import Activity from "@/components/activity/activity";
 import JsonLd from "@/components/json-ld";
 import Contact from "@/components/contact/contact";
 import Experience from "@/components/experience/experience";
@@ -12,6 +13,7 @@ import {
   getTools,
   getWorks,
 } from "@/lib/content/source";
+import { getGitHubActivity } from "@/lib/github";
 import { personSchema, websiteSchema } from "@/lib/seo";
 
 /**
@@ -25,13 +27,15 @@ import { personSchema, websiteSchema } from "@/lib/seo";
  * cache, so the five calls below are four requests, not five.
  */
 export default async function Home() {
-  const [about, works, featuredWorks, tools, experiences] = await Promise.all([
-    getAbout(),
-    getWorks(),
-    getFeaturedWorks(),
-    getTools(),
-    getExperiences(),
-  ]);
+  const [about, works, featuredWorks, tools, experiences, githubActivity] =
+    await Promise.all([
+      getAbout(),
+      getWorks(),
+      getFeaturedWorks(),
+      getTools(),
+      getExperiences(),
+      getGitHubActivity(),
+    ]);
 
   return (
     <main className="w-full">
@@ -50,6 +54,7 @@ export default async function Home() {
       <Hero />
       <About about={about} />
       <TechStack tools={tools} />
+      <Activity data={githubActivity} />
       <FeaturedWorks works={featuredWorks} total={works.length} />
       <Experience experiences={experiences} />
       <Contact />

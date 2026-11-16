@@ -1,6 +1,6 @@
 /** Every user-facing string in Chapter .06, mirroring the other chapters. */
 export const contactCopy = {
-  eyebrow: "--- Chapter .06",
+  eyebrow: "--- Chapter .07",
   chapter: "Contact",
 
   /**

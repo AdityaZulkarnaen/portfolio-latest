@@ -137,7 +137,7 @@ export default function Contact() {
     <section
       ref={rootRef}
       id="contact"
-      data-chapter=".06"
+      data-chapter=".07"
       data-chapter-name="Contact"
       // Void is the page's default ground and carries no rules of its own, so
       // this flag exists only to *take the top band back* from Chapter .05's

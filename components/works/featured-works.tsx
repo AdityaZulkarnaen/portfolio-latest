@@ -137,7 +137,7 @@ export default function FeaturedWorks({ works, total }: FeaturedWorksProps) {
     <section
       ref={rootRef}
       id="work"
-      data-chapter=".04"
+      data-chapter=".05"
       data-chapter-name="Works"
       // Above Chapter .03's wrapper (z-30) but below the fixed nav (z-40), so
       // the chapter can never be painted under the tunnel it follows and can

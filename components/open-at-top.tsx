@@ -126,6 +126,9 @@ export default function OpenAtTop() {
     // and it runs as the parser reaches it. The content is a constant in this
     // file — nothing from a request or the CMS reaches it — so there is no
     // injection surface to escape against.
-    <script dangerouslySetInnerHTML={{ __html: SCRIPT }} />
+    <script
+      suppressHydrationWarning
+      dangerouslySetInnerHTML={{ __html: SCRIPT }}
+    />
   );
 }

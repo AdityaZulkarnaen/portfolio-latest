@@ -8,12 +8,12 @@
  */
 
 export const experienceCopy = {
-  eyebrow: "--- Chapter .05",
+  eyebrow: "--- Chapter .06",
   chapter: "Experiences",
   /** The one heading, set in sentence case exactly as drawn. */
   heading: "My past work and organization experience.",
   /** Screen-reader name for the list, which is otherwise headed by nothing. */
   listLabel: "Work and organization experience",
-  seamLeft: "CHAPTER .05 // EXPERIENCE",
+  seamLeft: "CHAPTER .06 // EXPERIENCE",
   hint: "SCROLL TO CLOSE THE STACK",
 } as const;
