@@ -6,7 +6,7 @@ export const heroCopy = {
   surname: "ZULKARNAEN",
   /** The real, accessible heading. Visually hidden; the wordmark is decorative. */
   heading: "Aditya Zulkarnaen — Creative Frontend Developer",
-  eyebrow: "Chapter .01 Intro ---",
+  eyebrow: "Chapter .01 Intro · 21:00 ---",
   tagline: [
     "Passionate developer who excels in crafting scalable architectures and thrives under pressure, converting complex technical bottlenecks into seamless, scalable, production-ready systems.",
   ],

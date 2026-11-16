@@ -8,7 +8,7 @@
  */
 
 export const experienceCopy = {
-  eyebrow: "--- Chapter .06",
+  eyebrow: "--- Chapter .06 · 09:00",
   chapter: "Experiences",
   /** The one heading, set in sentence case exactly as drawn. */
   heading: "My past work and organization experience.",

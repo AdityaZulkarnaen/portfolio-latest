@@ -211,7 +211,7 @@ export default function Experience({ experiences }: ExperienceProps) {
       // The takeover. Same mechanism as Chapters .02 and .03: slabs pinned to
       // the outside of the top edge, travelling with the section, so the void
       // above is taken over rather than cut to. This is the biggest ground
-      // flip on the page — void to acid — so it is the one seam that would
+      // flip on the page — void to the day sky — so it is the one seam that would
       // read worst as a hard cut.
       gsap.fromTo(
         "[data-exp-slat]",
@@ -259,7 +259,7 @@ export default function Experience({ experiences }: ExperienceProps) {
       // the pointer trail to void for as long as this ground is under them.
       // `from` is the takeover's end below: until the slats have finished
       // sealing the frame, the top of the screen is still the void above.
-      data-ground="acid"
+      data-ground="light"
       data-ground-from="25%"
       // Above Chapter .04 (z-[35]) but below the fixed nav (z-40).
       //
@@ -303,7 +303,7 @@ export default function Experience({ experiences }: ExperienceProps) {
       // `--exp-roof` is what the ResizeObserver writes; `--exp-head` only reads
       // it where the roof is pinned, and the value here is the fallback for the
       // frame before JS runs.
-      className="relative z-[36] w-full bg-acid text-void [--exp-head:4.5rem] [--exp-roof:13rem] [--exp-row:4.5rem] md:[--exp-row:clamp(4.5rem,5.4vw,5.5rem)] [@media(min-height:780px)]:[--exp-head:var(--exp-roof)]"
+      className="relative z-[36] w-full bg-day text-void [--exp-head:4.5rem] [--exp-roof:13rem] [--exp-row:4.5rem] md:[--exp-row:clamp(4.5rem,5.4vw,5.5rem)] [@media(min-height:780px)]:[--exp-head:var(--exp-roof)]"
     >
       {/* Sits directly on the outside of the chapter's top edge and moves with
           it — this section's own reach into the void above. */}
@@ -315,7 +315,7 @@ export default function Experience({ experiences }: ExperienceProps) {
           <span
             key={i}
             data-exp-slat
-            className="w-full flex-1 origin-bottom scale-y-0 bg-acid will-change-transform"
+            className="w-full flex-1 origin-bottom scale-y-0 bg-day will-change-transform"
           />
         ))}
       </div>
@@ -335,7 +335,7 @@ export default function Experience({ experiences }: ExperienceProps) {
             card needs them. */}
         <div
           ref={headRef}
-          className="bg-acid pb-5 pt-[5.5rem] [@media(min-height:780px)]:sticky [@media(min-height:780px)]:top-0 [@media(min-height:780px)]:z-10"
+          className="bg-day pb-5 pt-[5.5rem] [@media(min-height:780px)]:sticky [@media(min-height:780px)]:top-0 [@media(min-height:780px)]:z-10"
         >
           <div className="flex flex-wrap items-start justify-between gap-x-8 gap-y-5">
             <div className="overflow-hidden">
@@ -386,7 +386,7 @@ export default function Experience({ experiences }: ExperienceProps) {
               // before it by covering it. Later siblings paint over earlier
               // ones at the same z, so DOM order alone gets the shutter right.
               // The rule on top is the leading edge of that shutter.
-              className="sticky border-t-2 border-void bg-acid"
+              className="sticky border-t-2 border-void bg-day"
             >
               {/* Fixed height, matching `--exp-row` exactly. `overflow-hidden`
                   is the guard: a long org name on a narrow screen would
@@ -427,7 +427,7 @@ export default function Experience({ experiences }: ExperienceProps) {
 
               It parks one pitch below the last card, so it seals exactly the
               body it is covering, and it is tall enough to run off the bottom
-              of any screen — that acid below the rule is the chapter's own full
+              of any screen — that sky below the rule is the chapter's own full
               stop.
 
               It carries the chapter's seam, which used to be a strip of its own
@@ -455,7 +455,7 @@ export default function Experience({ experiences }: ExperienceProps) {
             style={{
               top: `calc(var(--exp-head) + ${experiences.length} * (var(--exp-row) + 2px) - var(--exp-lift, 0px))`,
             }}
-            className="sticky min-h-[62svh] border-t-2 border-void bg-acid"
+            className="sticky min-h-[62svh] border-t-2 border-void bg-day"
           >
             <div
               className={`flex flex-wrap justify-between gap-4 py-6 text-void/55 md:py-8 ${META_TYPE_BASE}`}
@@ -466,9 +466,10 @@ export default function Experience({ experiences }: ExperienceProps) {
           </li>
         </ul>
       </div>
-      {/* Butterflies over the acid, above the cards: the cards are opaque,
-          so anything under them would only show in the margins. */}
-      <AsciiLayer scene="butterflies" cell={20} className="z-20" />
+      {/* 09:00 onward — the day sky: butterflies, birds, clouds, and a sun that
+          crosses it as the record is read. Above the cards, because the cards
+          are opaque and anything under them would only show in the margins. */}
+      <AsciiLayer scene="daylight" cell={20} className="z-20" />
     </section>
   );
 }

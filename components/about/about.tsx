@@ -257,11 +257,10 @@ export default function About({ about }: { about: AboutContent }) {
         ))}
       </div>
 
-      {/* The forest: a river winding down the panel under the copy, ivy
-          climbing its edges, fireflies in the air. No paper texture here —
-          the contour lines fought the water for the same space. */}
-      <AsciiLayer scene="river" className="z-0" />
-      <AsciiLayer scene="ivy" className="z-0" />
+      {/* 00:00 — the river at midnight, under the copy, with the moon on it.
+          No paper texture here — the contour lines fought the water for the
+          same space. */}
+      <AsciiLayer scene="moonriver" className="z-0" />
 
       {/* No `overflow-hidden` here — it would break the sticky children. */}
       <div className="relative">

@@ -402,9 +402,9 @@ export default function TechStack({ tools }: TechStackProps) {
           </div>
         ) : null}
 
-        {/* Dandelion seeds in the air around the tunnel — over the logos,
-            under the heading. */}
-        <AsciiLayer scene="seeds" className="z-[5]" />
+        {/* 02:00 — the deepest sky of the night, streaming past the tunnel:
+            over the logos, under the heading. */}
+        <AsciiLayer scene="stars" className="z-[5]" />
 
         {/* Heading in front of the tunnel, as in the reference. This is the
             real heading — the canvas behind it is decorative and aria-hidden. */}

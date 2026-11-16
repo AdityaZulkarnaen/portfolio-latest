@@ -2,12 +2,12 @@
 
 import { useEffect, useRef } from "react";
 import { useReducedMotion } from "@/lib/use-media-query";
-import { createScene, type SceneName } from "./scenes";
+import { createScene, type Brush, type SceneName } from "./scenes";
 
 /**
- * The garden's lighter sibling: the ASCII language of Chapter .01, carried
- * through the rest of the page as accents — one small Canvas 2D layer per
- * chapter, each with its own motif (`scenes.ts`).
+ * The ASCII language of Chapter .01, carried through the rest of the page —
+ * one small Canvas 2D layer per chapter, each one an hour of the same night
+ * and day (`scenes.ts` has the clock).
  *
  * Deliberately not WebGL. These are a few hundred glyphs at most, and three.js
  * is fenced off the eager bundle for a reason (see eslint.config.mjs); a 2D
@@ -48,6 +48,12 @@ function listenPointer() {
 }
 
 const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
+
+/** `#rrggbb` + alpha → `rgba()`, for gradient stops (which take no alpha). */
+function withAlpha(hex: string, alpha: number) {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${clamp01(alpha)})`;
+}
 
 type AsciiLayerProps = {
   scene: SceneName;
@@ -97,11 +103,41 @@ export default function AsciiLayer({ scene, cell = 12, className = "" }: AsciiLa
       if (yy < -radius || yy > canvasH + radius || alpha <= 0.01) return;
       const g = ctx.createRadialGradient(x, yy, 0, x, yy, radius);
       g.addColorStop(0, color);
-      g.addColorStop(1, "rgba(0,0,0,0)");
+      // Fade to the same colour at zero alpha, not to transparent black: on a
+      // light ground (the day sky) the latter interpolates through grey and
+      // rings the glow with a dirty halo.
+      g.addColorStop(1, color.replace(/,\s*[\d.]+\)\s*$/, ",0)"));
       ctx.globalAlpha = Math.min(1, alpha);
       ctx.fillStyle = g;
       ctx.fillRect(x - radius, yy - radius, radius * 2, radius * 2);
     };
+
+    /** A flat rect over cells [col0, col1) of one row — for bodies of colour. */
+    const fill = (col0: number, col1: number, row: number, color: string, alpha: number) => {
+      const y = row * cellH - offset;
+      if (y < -cellH || y > canvasH || alpha <= 0.01 || col1 <= col0) return;
+      ctx.globalAlpha = Math.min(1, alpha);
+      ctx.fillStyle = color;
+      ctx.fillRect(col0 * cellW, y, (col1 - col0) * cellW, cellH + 0.5);
+    };
+
+    /**
+     * A full-width vertical gradient between two section ys — skies, horizon
+     * glows. One gradient per call, clipped to the canvas's slice.
+     */
+    const band = (y0: number, y1: number, stops: [number, string, number][]) => {
+      const a = y0 - offset;
+      const b = y1 - offset;
+      if (b < 0 || a > canvasH || b <= a) return;
+      const g = ctx.createLinearGradient(0, a, 0, b);
+      for (const [at, color, alpha] of stops) g.addColorStop(at, withAlpha(color, alpha));
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = g;
+      const top = Math.max(a, 0);
+      ctx.fillRect(0, top, width, Math.min(b, canvasH) - top);
+    };
+
+    const brush: Brush = { put, glow, fill, band };
 
     const layout = () => {
       const rect = host.getBoundingClientRect();
@@ -140,7 +176,7 @@ export default function AsciiLayer({ scene, cell = 12, className = "" }: AsciiLa
 
       ctx.globalAlpha = 1;
       ctx.clearRect(0, 0, width, canvasH);
-      sc.draw(put, glow, {
+      sc.draw(brush, {
         t,
         dt,
         progress: reduced ? 1 : clamp01((vh - rect.top) / (vh + rect.height)),
@@ -150,6 +186,7 @@ export default function AsciiLayer({ scene, cell = 12, className = "" }: AsciiLa
         rowStart: Math.floor(offset / cellH) - 1,
         rowEnd: Math.ceil((offset + canvasH) / cellH) + 1,
         pointer: pointer && !reduced ? { x: pointer.x - rect.left, y: pointer.y - rect.top } : null,
+        reduced,
       });
     };
 

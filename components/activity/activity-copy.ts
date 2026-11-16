@@ -2,12 +2,12 @@
  * Every user-facing string in Chapter .04 (Activity) — matching the other chapters.
  */
 export const activityCopy = {
-  eyebrow: "--- Chapter .04",
+  eyebrow: "--- Chapter .04 · 04:30",
   chapter: "Activity",
   heading: "COMMITS",
-  subheading: "Continuous engineering pulse, Git contribution telemetry & repository sync.",
+  subheading: "Continuous engineering, Git contribution telemetry & repository sync.",
   tagline: "Building scalable architectures day in, day out.",
-  status: "TELEMETRY // SYNC_ACTIVE",
+  status: "Active",
   githubUrl: "https://github.com/AdityaZulkarnaen",
   viewProfile: "VIEW GITHUB",
   stats: {

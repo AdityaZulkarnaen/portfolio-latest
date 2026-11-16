@@ -7,6 +7,7 @@ import { useFinePointer, useReducedMotion } from "@/lib/use-media-query";
 import { useScrollVelocity } from "@/lib/use-smooth-scroll";
 import { useWebGLSupport } from "@/lib/use-webgl-support";
 import { META_TYPE } from "@/lib/site-config";
+import AsciiLayer from "@/components/ascii/ascii-layer";
 import { HERO_BACKDROP } from "./hero-backdrop";
 import HeroCanvas from "./hero-canvas";
 import { heroCopy } from "./hero-copy";
@@ -524,6 +525,13 @@ export default function Hero() {
           >
             <div className="absolute inset-0 opacity-60 [background:repeating-linear-gradient(67deg,#cba7f5_0_2px,transparent_2px_8px)]" />
           </div>
+        ) : null}
+
+        {/* 21:00 — the moon and stars over the garden, the opening hour of the
+            page's one day (see `components/ascii/scenes.ts`). Screen-blended
+            over the shader so it only adds light to it. */}
+        {HERO_BACKDROP === "portrait" ? (
+          <AsciiLayer scene="nightsky" className="z-[1] mix-blend-screen" />
         ) : null}
 
         {/* The field is at its most detailed exactly where the copy sits, so

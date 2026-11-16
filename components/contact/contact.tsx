@@ -22,6 +22,22 @@ const CONTACT_INITIAL: ContactState = { status: "idle", attempt: 0 };
 /** Slabs the chapter reaches up with, matching every takeover before it. */
 const SLATS = 4;
 
+/**
+ * Sunset, top to bottom. The slats are the band of sky between the day of
+ * Chapter .06 and this chapter's dusk, so each is one stripe of it, and the
+ * last is where the section's own sky (`DUSK_SKY`) picks up.
+ */
+const SLAT_SKY = ["#ffb47a", "#ff8a6b", "#e0577f", "#8a2f6e"];
+
+/**
+ * The chapter's ground: the last slat's magenta deepening to violet, then the
+ * void, then — over the last stretch — the footer's night indigo, so the two
+ * meet without a seam. A CSS gradient rather than the ASCII canvas, so it is
+ * there on the first frame and never waits on the canvas to start.
+ */
+const DUSK_SKY =
+  "linear-gradient(to bottom, #8a2f6e 0px, #4a1a62 200px, #2c1155 380px, #08080a 760px, #08080a calc(100% - 520px), #0b0e22 100%)";
+
 /** Shared by every input, so the three of them cannot drift apart. */
 const FIELD =
   "w-full border-0 border-b border-line bg-transparent pb-3 pt-2 font-sans text-lg text-ink outline-none transition-colors placeholder:text-muted/60 focus:border-acid";
@@ -30,7 +46,7 @@ const FIELD =
  * Chapter .06 — the way to reach him.
  *
  * The last chapter, and the only one that asks for something back. It takes the
- * void again after Chapter .05's acid, so the page closes on the ground it
+ * void again after Chapter .06's day sky, so the page closes on the ground it
  * opened on.
  *
  * Nothing is pinned or scrubbed here on purpose. Every chapter before this one
@@ -141,18 +157,19 @@ export default function Contact() {
       data-chapter-name="Contact"
       // Void is the page's default ground and carries no rules of its own, so
       // this flag exists only to *take the top band back* from Chapter .05's
-      // acid. `site-ground.tsx` hands over rather than clearing, so the acid
+      // light ground. `site-ground.tsx` hands over rather than clearing, so the light
       // stops the moment this seals the frame — not a screen and a half later,
       // when .05's bottom edge finally reaches the top. Without it the nav
       // spends the whole takeover painted void on void.
       data-ground="void"
       data-ground-from="25%"
-      // Above Chapter .05 (z-[36]) so the slats can climb over its acid, and
+      // Above Chapter .05 (z-[36]) so the slats can climb over its sky, and
       // still below the fixed nav (z-40).
       className="relative z-[37] w-full bg-void"
+      style={{ backgroundImage: DUSK_SKY }}
     >
       {/* Sits directly on the outside of the chapter's top edge and moves with
-          it — this section's own reach into the acid above. */}
+          it — this section's own reach into the sky above. */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 bottom-full flex h-[30svh] flex-col md:h-[55svh]"
@@ -161,14 +178,16 @@ export default function Contact() {
           <span
             key={i}
             data-contact-slat
-            className="w-full flex-1 origin-bottom scale-y-0 bg-void will-change-transform"
+            className="w-full flex-1 origin-bottom scale-y-0 will-change-transform"
+            style={{ backgroundColor: SLAT_SKY[i] }}
           />
         ))}
       </div>
 
       <SiteTexture className="text-acid opacity-[0.14]" />
-      {/* The hero's garden, echoed small under the form. */}
-      <AsciiLayer scene="hedge" className="z-0" />
+      {/* 18:30 — dusk: the last of the light behind the hedges at the foot of
+          the chapter, and the fireflies coming out as it goes. */}
+      <AsciiLayer scene="dusk" className="z-0" />
 
       {/* `relative` is load-bearing: the texture above is absolutely positioned
           and would otherwise paint over this whole column. */}

@@ -33,6 +33,12 @@
      green of the hedges in it, so the panel reads as walking into the garden
      rather than as a slab of some other material laid over it. */
   --color-moss: #0c1410;
+  /* The page is one day, read top to bottom (see `components/ascii/scenes.ts`).
+     Two grounds are times of it rather than materials: Chapter .06 is the day
+     sky the record is lived under, the footer is the night the page ends in —
+     the same night the hero opens on, so the loop closes. */
+  --color-day: #9ed3f0;
+  --color-night: #0b0e22;
   /* The concrete slab Chapter .02 used to be. Kept for anything still on it. */
   --color-slab: #97978f;
   --color-slab-deep: #7f7f78;
@@ -353,7 +359,10 @@ html.lenis body {
   }
 }
 
-/* ─── Fixed chrome standing on an acid ground ──────────────────────────────
+/* ─── Fixed chrome standing on a light ground ──────────────────────────────
+   (The flag is `light`; it was `acid` while Chapter .06 was. The history below
+   is why it exists, and it holds for any pale ground — the day sky included.)
+
    The nav, the chapter rail and the pointer trail belong to no chapter but are
    always on top of one. Two of them solve that with `mix-blend-difference`,
    which held for as long as every ground on the page was either the void or
@@ -374,14 +383,14 @@ html.lenis body {
    at different heights: `-top` for the nav's band, `-mid` for the rail, which
    hangs centred down the right edge, and the trail, which is full-screen. */
 
-html[data-ground-top="acid"] [data-nav] {
+html[data-ground-top="light"] [data-nav] {
   mix-blend-mode: normal;
   color: var(--color-void);
 }
 
 /* Beats Tailwind's `hover:text-acid` on specificity alone — an acid hover on
    an acid ground is a link that disappears when you point at it. */
-html[data-ground-top="acid"] [data-nav] a:hover {
+html[data-ground-top="light"] [data-nav] a:hover {
   color: var(--color-void);
   opacity: 0.55;
 }
@@ -393,41 +402,41 @@ html[data-ground-top="acid"] [data-nav] a:hover {
    Everything goes void there, and the distinction is carried by weight of ink
    instead of by hue: the rest of the menu steps back to 55%, which is the same
    move the rail makes with its inactive ticks. */
-html[data-ground-top="acid"] [data-nav] a[data-active="true"] {
+html[data-ground-top="light"] [data-nav] a[data-active="true"] {
   color: var(--color-void);
   opacity: 1;
 }
 
-html[data-ground-top="acid"] [data-nav] a[data-active="false"] {
+html[data-ground-top="light"] [data-nav] a[data-active="false"] {
   opacity: 0.55;
 }
 
-html[data-ground-top="acid"] [data-nav-dot] {
+html[data-ground-top="light"] [data-nav-dot] {
   color: var(--color-void);
 }
 
-html[data-ground-mid="acid"] [data-tick] {
+html[data-ground-mid="light"] [data-tick] {
   mix-blend-mode: normal;
   color: var(--color-void);
 }
 
-html[data-ground-mid="acid"] [data-tick-dash] {
+html[data-ground-mid="light"] [data-tick-dash] {
   background-color: var(--color-void);
 }
 
 /* The void at the same 25% the hairline carries as ink on the dark chapters. */
-html[data-ground-mid="acid"] [data-rail-line] {
+html[data-ground-mid="light"] [data-rail-line] {
   mix-blend-mode: normal;
   background-color: rgba(8, 8, 10, 0.25);
 }
 
-html[data-ground-mid="acid"] [data-rail-thumb] {
+html[data-ground-mid="light"] [data-rail-thumb] {
   background-color: var(--color-void);
 }
 
 /* Every cell of the trail's lattice. Their opacity is written per frame from
    JS and is left alone here — only the colour changes. */
-html[data-ground-mid="acid"] [data-trail] > div {
+html[data-ground-mid="light"] [data-trail] > div {
   background-color: var(--color-void);
 }
 

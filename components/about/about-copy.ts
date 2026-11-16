@@ -10,7 +10,7 @@
  * not when the copy does.
  */
 export const aboutCopy = {
-  eyebrow: "--- Chapter .02",
+  eyebrow: "--- Chapter .02 · 00:00",
   chapter: "About Me",
   resume: "See My Resume",
   /** Where the button goes when the document leaves `resumeUrl` empty. */

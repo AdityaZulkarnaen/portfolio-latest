@@ -145,8 +145,9 @@ export default function FeaturedWorks({ works, total }: FeaturedWorksProps) {
       className="relative z-[35] w-full overflow-hidden bg-void"
     >
       <SiteTexture className="text-acid opacity-[0.14]" />
-      {/* Flowers opening in the gaps; the tiles hide the rest. */}
-      <AsciiLayer scene="blooms" className="z-0" />
+      {/* 05:45 — flowers opening in the gaps (the tiles hide the rest), and
+          the sun coming up over the meadow at the foot of the chapter. */}
+      <AsciiLayer scene="dawn" className="z-0" />
 
       {/* <BlueprintGrid /> */}
 

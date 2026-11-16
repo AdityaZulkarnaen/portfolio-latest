@@ -6,12 +6,15 @@ import AsciiLayer from "@/components/ascii/ascii-layer";
 /**
  * The foot of every page.
  *
- * Acid, because the page has spent its whole length alternating grounds and
- * this is the last one — ending on the void would end on the same note Chapter
- * .06 already closed on. It is the only piece of the site outside the chapters
- * that carries a ground of its own, so it declares it: `site-ground.tsx` reads
- * the flag and flips the fixed chrome to void for as long as this is under it,
- * exactly as Chapter .05 does.
+ * Night. The page is one day read top to bottom — the hero's evening garden,
+ * midnight, stars, dawn, the day sky of Chapter .06, dusk over the contact
+ * form — and this is where it ends: indigo rather than the void, so it reads
+ * as the sky at the last hour, not as one more dark chapter. Back to top lands
+ * on the hero's night again, which is the loop closing.
+ *
+ * It declares `void` to `site-ground.tsx` for the same reason Chapter .07
+ * does: a dark ground wants the default chrome, and the flag hands it back
+ * from the light ground above instead of leaving it stale.
  *
  * No `data-chapter` — it is not one, and the rail should not grow a tick for
  * the furniture.
@@ -24,13 +27,13 @@ export default function SiteFooter() {
 
   return (
     <footer
-      data-ground="acid"
+      data-ground="void"
       // Above Chapter .06 (z-[37]), below the fixed nav (z-40).
-      className="relative z-[38] w-full bg-acid text-void"
+      className="relative z-[38] w-full bg-night text-ink"
     >
-      <SiteTexture className="text-void opacity-[0.07]" />
-      {/* The footer is ground: tufts and mushrooms along its edge. */}
-      <AsciiLayer scene="sprouts" cell={15} className="z-0" />
+      <SiteTexture className="text-lilac opacity-[0.08]" />
+      {/* 23:59 — moon, stars, and the garden's grass in silhouette. */}
+      <AsciiLayer scene="night" cell={15} className="z-0" />
 
       {/* `relative`, for the same reason Chapter .06 needs it. */}
       <div className="relative mx-auto w-full max-w-[110rem] px-5 pb-8 pt-14 sm:pr-[var(--rail-gutter)] md:px-8 md:pb-10 md:pt-20">
@@ -41,7 +44,7 @@ export default function SiteFooter() {
             stays behind its own boundary rather than making the footer one. */}
         <FooterWordmark word={footerConfig.wordmark} />
 
-        <div className="mt-10 grid gap-x-8 gap-y-10 border-t-2 border-void pt-8 md:mt-14 md:grid-cols-12">
+        <div className="mt-10 grid gap-x-8 gap-y-10 border-t-2 border-ink/80 pt-8 md:mt-14 md:grid-cols-12">
           <p className="max-w-[46ch] font-sans text-base leading-relaxed md:col-span-5 md:text-lg">
             {footerConfig.tagline.map((part, i) =>
               part.strong ? (
@@ -72,7 +75,7 @@ export default function SiteFooter() {
                   // opened here can reach back through `window.opener` and
                   // navigate this one.
                   rel="noreferrer noopener"
-                  className="group flex items-center justify-between gap-4 border-t border-void/35 pt-3 font-sans text-lg transition-colors hover:text-void/55"
+                  className="group flex items-center justify-between gap-4 border-t border-ink/25 pt-3 font-sans text-lg transition-colors hover:text-acid"
                 >
                   {item.label}
                   {/* The mark for "this leaves the site", set at the far end of
@@ -102,7 +105,7 @@ export default function SiteFooter() {
         </div>
 
         <div
-          className={`mt-14 flex flex-wrap items-baseline justify-between gap-4 text-void/55 md:mt-20 ${META_TYPE_BASE}`}
+          className={`mt-14 flex flex-wrap items-baseline justify-between gap-4 text-muted md:mt-20 ${META_TYPE_BASE}`}
         >
           {/* The year is read at render. A hard-coded one is wrong every
               January, and nobody remembers a footer in January. */}

@@ -10,7 +10,7 @@
  */
 
 export const worksCopy = {
-  eyebrow: "--- Chapter .05",
+  eyebrow: "--- Chapter .05 · 05:45",
   chapter: "Selected Work",
   heading: "FEATURED PROJECTS",
   /** Right of the section head, linking to the full index. */

@@ -8,7 +8,7 @@ import { useReducedMotion } from "@/lib/use-media-query";
  * The echoes standing on the crisp word's shoulders — **farthest first**.
  *
  * The order is paint order, and paint order is the effect: each layer carries
- * an opaque acid band, so a layer printed later cuts into the one printed
+ * an opaque band of the ground, so a layer printed later cuts into the one printed
  * before it. Listing the farthest echo first means the stack occludes downward-
  * to-upward, the way a pile of paper does, and the crisp word at the end is the
  * only copy nothing crosses.
@@ -74,7 +74,7 @@ const BAND = {
  * `isolate` is load-bearing. The band is an in-flow inline-block and the word
  * is plain inline text beside it, so without a stacking context of its own the
  * layer paints the band *over* its own letters and the whole block goes flat
- * acid. Isolating each layer scopes the two z-indexes below to it: the band
+ * ground. Isolating each layer scopes the two z-indexes below to it: the band
  * sits under its word, and the layer as a whole still paints over every layer
  * before it in the tree — which is what takes the bite out of the copy above.
  */
@@ -88,7 +88,7 @@ const BAND = {
  * which then defeats the very measurement that would correct it.
  */
 const LAYER_TYPE =
-  "absolute inset-x-0 bottom-0 isolate block whitespace-nowrap font-blur text-[1em] font-medium tracking-[-0.02em] text-void";
+  "absolute inset-x-0 bottom-0 isolate block whitespace-nowrap font-blur text-[1em] font-medium tracking-[-0.02em] text-ink";
 
 /**
  * The footer wordmark: one name, said once, printed four times.
@@ -101,7 +101,7 @@ const LAYER_TYPE =
  * the static version was reaching for with one echo and could not move.
  *
  * Each copy is printed on a band of the ground it stands on, exactly as tall as
- * its own `u` (see `BAND`). On the acid footer the band is invisible where it
+ * its own `u` (see `BAND`). On the night footer the band is invisible where it
  * has nothing under it; where it crosses the copy above, it takes a straight
  * horizontal bite out of it. So the glyphs come apart along hard edges as the
  * stack opens, and the band squashes with its layer — every copy is cut to the
@@ -141,7 +141,7 @@ export default function FooterWordmark({ word }: { word: string }) {
   // wrap and changed nothing. A two-line layer is `2 × 0.78em` tall and hangs
   // off `bottom-0`, so with the echo offsets on top of it the stack stood
   // 2.3em above the container's floor inside a box reserving 1.62em: the extra
-  // line, bands and all, printed acid over the section above the footer. The
+  // line, bands and all, printed the ground over the section above the footer. The
   // same oversized `em` is what sent the echoes travelling too far.
   useEffect(() => {
     const root = rootRef.current;
@@ -268,7 +268,7 @@ export default function FooterWordmark({ word }: { word: string }) {
   const band = (
     <span
       aria-hidden
-      className="relative z-0 inline-block w-full bg-acid"
+      className="relative z-0 inline-block w-full bg-night"
       style={BAND}
     />
   );
@@ -283,7 +283,7 @@ export default function FooterWordmark({ word }: { word: string }) {
       // floor — 0.741em of echo offset, one 0.78em line box, and the band
       // reaching 0.638em over its own baseline — inside the 1.62em reserved
       // here. What it buys is the failure mode. Every layer carries an opaque
-      // full-width acid band, so a layer that ends up taller than its line box
+      // full-width band of the ground, so a layer that ends up taller than its line box
       // does not merely look wrong, it prints the footer's ground over the
       // section above it. Clipped, the worst case is a wordmark with its top
       // cut off, which is a bug someone reports rather than one that looks

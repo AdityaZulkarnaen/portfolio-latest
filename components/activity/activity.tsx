@@ -1,3 +1,4 @@
+import AsciiLayer from "@/components/ascii/ascii-layer";
 import SiteTexture from "@/components/site-texture";
 import { META_TYPE_BASE } from "@/lib/site-config";
 import type { GitHubActivityData } from "@/lib/github";
@@ -18,6 +19,9 @@ export default function Activity({ data }: ActivityProps) {
       className="relative z-[34] w-full overflow-hidden bg-void"
     >
       <SiteTexture className="text-acid opacity-[0.12]" />
+      {/* 04:30 — the last stars going out, and a violet line of light behind
+          the hills at the foot of the chapter. */}
+      <AsciiLayer scene="predawn" className="z-0" />
 
       <div className="relative mx-auto w-full max-w-[110rem] pb-24 pl-5 pr-5 pt-20 sm:pr-[var(--rail-gutter)] md:pb-36 md:pl-8 md:pt-28">
         <header className="mb-12 flex flex-wrap items-end justify-between gap-x-8 gap-y-6 md:mb-16">

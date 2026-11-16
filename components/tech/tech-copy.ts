@@ -43,7 +43,7 @@ function spell(n: number): string {
 
 /** Every user-facing string in Chapter .03 lives here, mirroring `hero-copy`. */
 export const techCopy = {
-  eyebrow: "--- Chapter .03",
+  eyebrow: "--- Chapter .03 · 02:00",
   chapter: "Tech Stack",
   /** Rendered as two stacked display lines, locked to the mouth of the tunnel. */
   heading: ["TECH", "STACK"],

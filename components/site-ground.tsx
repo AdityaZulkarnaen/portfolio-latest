@@ -27,7 +27,7 @@ const BANDS = [
  * The nav, the chapter rail and the pointer trail belong to no chapter but are
  * always on top of one. Two of them solve that with `mix-blend-difference`,
  * which held while every ground on the page was either the void or Chapter
- * .02's mid-grey slab. Chapter .05 is acid, and difference against acid sends
+ * .02's mid-grey slab. Chapter .06 was acid (it is the day sky now, flagged `light`), and difference against acid sent
  * ink to a hard blue while the two flat-acid pieces — the rail's thumb and the
  * trail — vanish outright. So a section can declare its ground, and the
  * stylesheet flips the chrome by hand for the stretch that ground is under it.
